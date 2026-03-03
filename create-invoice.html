@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Invoice – InvoiceFlow</title>
+  <meta name="description" content="Create a professional invoice, add line items, and generate a PDF in seconds." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%232563EB'/><text y='.9em' font-size='60' x='20'>📄</text></svg>" />
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ══════════════════ SIDEBAR ══════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5V8H18"/></svg>
+        </div>
+        <div>
+          <div class="logo-text">InvoiceFlow</div>
+          <div class="logo-sub">Invoice Management</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a class="nav-item" href="dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item active" href="create-invoice.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Create Invoice
+      </a>
+      <a class="nav-item" href="reports.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Reports
+      </a>
+      <div class="nav-section-label" style="margin-top:20px;">Account</div>
+      <a class="nav-item" href="settings.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">U</div>
+        <div class="user-details">
+          <div class="user-name" id="user-name">Loading…</div>
+          <div class="user-email" id="user-email">—</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-full btn-sm" onclick="handleLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+  <div class="main-content">
+
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Create Invoice</h2>
+        <p>Fill in the details below and generate a professional invoice</p>
+      </div>
+      <div class="topbar-right">
+        <a href="dashboard.html" class="btn btn-ghost btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Back
+        </a>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <form id="invoice-form" onsubmit="handleCreateInvoice(event)">
+        <div class="create-content">
+
+          <!-- ── Invoice Metadata ── -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div>
+                <h3>Invoice Details</h3>
+                <p>Invoice number and date information</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="invoice-number">Invoice Number</label>
+                <input type="text" id="invoice-number" placeholder="Auto-generated" readonly style="opacity:0.7;cursor:not-allowed;" />
+              </div>
+              <div class="form-group">
+                <label for="issue-date">Issue Date <span style="color:var(--danger)">*</span></label>
+                <input type="date" id="issue-date" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="due-date">Due Date <span style="color:var(--danger)">*</span></label>
+                <input type="date" id="due-date" required />
+              </div>
+              <div class="form-group">
+                <label>&nbsp;</label>
+                <div style="padding:12px 0; font-size:0.8rem; color:var(--text-muted);">
+                  Invoice will be saved with <strong style="color:var(--warning)">Pending</strong> status.
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Logo Upload ── -->
+            <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:4px;">
+              <label style="font-size:0.8rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:8px;">
+                Company Logo <span style="font-size:0.7rem;font-weight:400;color:var(--text-dim);text-transform:none;">(optional — appears in PDFs)</span>
+              </label>
+              <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <div id="logo-preview-wrap" style="display:none;width:72px;height:72px;border:1px solid var(--border-accent);border-radius:var(--radius);overflow:hidden;background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <img id="logo-preview" src="" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;" />
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <label for="logo-upload" class="btn btn-secondary btn-sm" style="cursor:pointer;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Upload Logo
+                  </label>
+                  <input type="file" id="logo-upload" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" style="display:none;" onchange="handleLogoUpload(event)" />
+                  <button type="button" class="btn btn-ghost btn-sm" id="logo-remove-btn" style="display:none;" onclick="removeLogo()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Client Selection ── -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div>
+                <h3>Client Information</h3>
+                <p>Select an existing client or add a new one</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="client-select">Select Client <span style="color:var(--danger)">*</span></label>
+                <select id="client-select" onchange="handleClientChange()" required>
+                  <option value="">— Choose a client —</option>
+                  <option value="new">➕ Add new client…</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- New Client Panel -->
+            <div class="new-client-panel" id="new-client-panel">
+              <h4>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="margin-right:6px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                New Client Details
+              </h4>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="new-client-name">Full Name / Company <span style="color:var(--danger)">*</span></label>
+                  <input type="text" id="new-client-name" placeholder="Acme Corporation" />
+                </div>
+                <div class="form-group">
+                  <label for="new-client-email">Email Address</label>
+                  <input type="email" id="new-client-email" placeholder="client@example.com" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="new-client-phone">Phone Number</label>
+                  <input type="tel" id="new-client-phone" placeholder="+1 (555) 000-0000" />
+                </div>
+                <div class="form-group">
+                  <label for="new-client-address">Address</label>
+                  <input type="text" id="new-client-address" placeholder="123 Main St, City, Country" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Invoice Items ── -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </div>
+              <div>
+                <h3>Invoice Items</h3>
+                <p>Add the services or products to invoice for</p>
+              </div>
+            </div>
+
+            <div class="items-table-wrapper">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th class="col-desc">Description</th>
+                    <th class="col-qty">Qty</th>
+                    <th class="col-price">Unit Price</th>
+                    <th class="col-total">Total</th>
+                    <th class="col-action"></th>
+                  </tr>
+                </thead>
+                <tbody id="items-tbody"></tbody>
+              </table>
+            </div>
+
+            <button type="button" class="btn btn-secondary btn-sm add-item-btn" onclick="addItem()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Line Item
+            </button>
+
+            <!-- Totals Panel -->
+            <div class="totals-panel">
+              <div class="total-row">
+                <span class="label">Subtotal</span>
+                <span class="value" id="display-subtotal">MK 0.00</span>
+              </div>
+              <div class="total-row">
+                <span class="label">Discount</span>
+                <span class="value">
+                  <div class="tax-input-row">
+                    <input type="number" id="discount-rate" value="0" min="0" max="100" step="0.5" oninput="recalcTotals()" />
+                    <span>%</span>
+                    <span id="display-discount" style="color:var(--danger);">MK 0.00</span>
+                  </div>
+                </span>
+              </div>
+              <div class="total-row">
+                <span class="label" style="color:var(--text-muted);font-size:0.8rem;">After Discount</span>
+                <span class="value" id="display-after-discount" style="font-size:0.9rem;">MK 0.00</span>
+              </div>
+              <div class="total-row">
+                <span class="label">Tax</span>
+                <span class="value">
+                  <div class="tax-input-row">
+                    <input type="number" id="tax-rate" value="0" min="0" max="100" step="0.5" oninput="recalcTotals()" />
+                    <span>%</span>
+                    <span id="display-tax">MK 0.00</span>
+                  </div>
+                </span>
+              </div>
+              <div class="total-row grand">
+                <span class="label">Grand Total</span>
+                <span class="value" id="display-total">MK 0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Payment Methods ── -->
+          <div class="section-card" id="payment-methods-card">
+            <div class="section-card-header">
+              <div class="section-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </div>
+              <div>
+                <h3>Payment Methods &amp; Account Details</h3>
+                <p>Select methods and add one or more accounts — all will print on the invoice PDF in a horizontal layout</p>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px;">
+
+              <!-- Bank Transfer -->
+              <div class="payment-method-block" id="pm-block-bank">
+                <label class="payment-method-toggle">
+                  <input type="checkbox" id="pm-bank" onchange="togglePaymentMethod('bank')" />
+                  <span class="pm-toggle-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  </span>
+                  <span class="pm-toggle-label">Bank Transfer</span>
+                  <span class="pm-badge">Recommended</span>
+                </label>
+                <div class="payment-method-details" id="pm-details-bank">
+                  <div id="pm-bank-accounts-wrap"></div>
+                  <button type="button" class="pm-add-account-btn" onclick="addAccount('bank')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Bank Account
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mobile Money -->
+              <div class="payment-method-block" id="pm-block-mobile">
+                <label class="payment-method-toggle">
+                  <input type="checkbox" id="pm-mobile" onchange="togglePaymentMethod('mobile')" />
+                  <span class="pm-toggle-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  </span>
+                  <span class="pm-toggle-label">Mobile Money</span>
+                </label>
+                <div class="payment-method-details" id="pm-details-mobile">
+                  <div id="pm-mobile-accounts-wrap"></div>
+                  <button type="button" class="pm-add-account-btn" onclick="addAccount('mobile')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Mobile Provider
+                  </button>
+                </div>
+              </div>
+
+              <!-- Cash -->
+              <div class="payment-method-block" id="pm-block-cash">
+                <label class="payment-method-toggle">
+                  <input type="checkbox" id="pm-cash" onchange="togglePaymentMethod('cash')" />
+                  <span class="pm-toggle-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  </span>
+                  <span class="pm-toggle-label">Cash</span>
+                </label>
+                <div class="payment-method-details" id="pm-details-cash">
+                  <div class="form-group" style="margin:0;">
+                    <label for="pm-cash-instructions">Cash Instructions (optional)</label>
+                    <input type="text" id="pm-cash-instructions" placeholder="e.g. Cash accepted at our office. Receipt will be issued." oninput="savePmState()" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Other -->
+              <div class="payment-method-block" id="pm-block-other">
+                <label class="payment-method-toggle">
+                  <input type="checkbox" id="pm-other" onchange="togglePaymentMethod('other')" />
+                  <span class="pm-toggle-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                  </span>
+                  <span class="pm-toggle-label">Other Method</span>
+                </label>
+                <div class="payment-method-details" id="pm-details-other">
+                  <div id="pm-other-accounts-wrap"></div>
+                  <button type="button" class="pm-add-account-btn" onclick="addAccount('other')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Account
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <div style="margin-top:16px;padding:12px 16px;background:var(--accent-light);border:1px solid var(--border-accent);border-radius:var(--radius);font-size:0.8rem;color:var(--text-muted);">
+              <strong style="color:var(--accent);">&#128161; Tip:</strong> Add multiple accounts per method — all will appear side-by-side in columns on the PDF.
+            </div>
+          </div>
+
+          <!-- ── Notes (optional) ── -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <div class="section-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </div>
+              <div>
+                <h3>Notes <span style="font-size:0.75rem;color:var(--text-dim);font-weight:400;">(optional)</span></h3>
+                <p>Add any extra notes or payment instructions</p>
+              </div>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <textarea id="invoice-notes" placeholder="e.g. Payment due within 30 days. Bank transfer details: …" rows="3"></textarea>
+            </div>
+          </div>
+
+          <!-- ── Form Actions ── -->
+          <div class="section-card" style="padding:20px 28px;">
+            <div class="form-actions">
+              <a href="dashboard.html" class="btn btn-ghost">Cancel</a>
+              <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <span id="submit-btn-text">Save Invoice &amp; Download PDF</span>
+                <span id="submit-spinner" class="spinner hidden"></span>
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /create-content -->
+      </form>
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p id="loading-msg">Saving invoice…</p>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Supabase + jsPDF CDNs -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script type="module">
+  import { requireAuth, logout } from './auth.js';
+  import { getClients, createClient, createInvoice, generateInvoiceNumber } from './invoices.js';
+  import { downloadInvoicePdf, docToBlob } from './pdfGenerator.js';
+  import { uploadPdf } from './invoices.js';
+
+  /* ── Payment Methods State ──
+     pmState holds the enabled flag + accounts[] array for each method.
+     Persisted to localStorage as JSON. ---------------------------------------------- */
+  const pmState = {
+    bank:   { enabled: false, accounts: [] },  // [{bank,account,holder,branch}]
+    mobile: { enabled: false, accounts: [] },  // [{provider,number,holder}]
+    cash:   { enabled: false, instructions: '' },
+    other:  { enabled: false, accounts: [] },  // [{method,details}]
+  };
+
+  /* ── State ── */
+  let itemCount = 0;
+  let clientList = [];
+
+  /* ── Init ── */
+  (async () => {
+    const session = await requireAuth();
+    if (!session) return;
+
+    const user = session.user;
+    document.getElementById('user-avatar').textContent = (user.email || 'U').substring(0, 2).toUpperCase();
+    document.getElementById('user-name').textContent   = user.user_metadata?.full_name || 'User';
+    document.getElementById('user-email').textContent  = user.email;
+
+    // Set default dates
+    const today    = new Date().toISOString().split('T')[0];
+    const due30    = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+    document.getElementById('issue-date').value = today;
+    document.getElementById('due-date').value   = due30;
+
+    // Generate invoice number
+    try {
+      const num = await generateInvoiceNumber();
+      document.getElementById('invoice-number').value = num;
+    } catch (e) { document.getElementById('invoice-number').value = 'INV-0001'; }
+
+    // Load clients
+    await loadClients();
+
+    // Add first blank item row
+    addItem();
+
+    // Restore saved payment methods
+    restorePaymentMethods();
+  })();
+
+  /* ── Load Clients into Select ── */
+  async function loadClients() {
+    try {
+      clientList = await getClients();
+      const sel  = document.getElementById('client-select');
+
+      // Keep first two options, remove old ones
+      while (sel.options.length > 2) sel.remove(2);
+
+      clientList.forEach(c => {
+        const opt = new Option(`${c.name}${c.email ? ` (${c.email})` : ''}`, c.id);
+        sel.add(opt);
+      });
+    } catch (e) {
+      showToast('Could not load clients: ' + e.message, 'error');
+    }
+  }
+
+  /* ── Client Select Handler ── */
+  window.handleClientChange = () => {
+    const val = document.getElementById('client-select').value;
+    const panel = document.getElementById('new-client-panel');
+    panel.classList.toggle('show', val === 'new');
+
+    // Toggle required on new client fields
+    const nameField = document.getElementById('new-client-name');
+    nameField.required = val === 'new';
+  };
+
+  /* ── Add Item Row ── */
+  window.addItem = () => {
+    const tbody = document.getElementById('items-tbody');
+    const id    = itemCount++;
+
+    const row = document.createElement('tr');
+    row.id = `item-row-${id}`;
+    row.innerHTML = `
+      <td class="col-desc">
+        <input type="text" id="item-desc-${id}" placeholder="Service or product description…" required />
+      </td>
+      <td class="col-qty">
+        <input type="number" id="item-qty-${id}" value="1" min="1" step="1" oninput="calcRow(${id})" required />
+      </td>
+      <td class="col-price">
+        <input type="number" id="item-price-${id}" value="0.00" min="0" step="0.01" placeholder="0.00" oninput="calcRow(${id})" required />
+      </td>
+      <td class="col-total">
+        <input type="number" id="item-total-${id}" value="0.00" readonly />
+      </td>
+      <td class="col-action">
+        <button type="button" class="remove-item-btn" onclick="removeItem(${id})" title="Remove item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  };
+
+  /* ── Remove Item Row ── */
+  window.removeItem = (id) => {
+    const rows = document.getElementById('items-tbody').querySelectorAll('tr');
+    if (rows.length <= 1) {
+      showToast('At least one item is required.', 'error');
+      return;
+    }
+    document.getElementById(`item-row-${id}`)?.remove();
+    recalcTotals();
+  };
+
+  /* ── Calculate Row Total ── */
+  window.calcRow = (id) => {
+    const qty   = parseFloat(document.getElementById(`item-qty-${id}`)?.value || 0);
+    const price = parseFloat(document.getElementById(`item-price-${id}`)?.value || 0);
+    const total = qty * price;
+    const totalEl = document.getElementById(`item-total-${id}`);
+    if (totalEl) totalEl.value = total.toFixed(2);
+    recalcTotals();
+  };
+
+  /* ── Recalculate All Totals ── */
+  window.recalcTotals = () => {
+    let subtotal = 0;
+    for (let i = 0; i < itemCount; i++) {
+      const el = document.getElementById(`item-total-${i}`);
+      if (el) subtotal += parseFloat(el.value || 0);
+    }
+    const discountRate  = parseFloat(document.getElementById('discount-rate').value || 0);
+    const discountAmt   = subtotal * (discountRate / 100);
+    const afterDiscount = subtotal - discountAmt;
+    const taxRate       = parseFloat(document.getElementById('tax-rate').value || 0);
+    const taxAmt        = afterDiscount * (taxRate / 100);
+    const total         = afterDiscount + taxAmt;
+
+    document.getElementById('display-subtotal').textContent     = fmtCurrency(subtotal);
+    document.getElementById('display-discount').textContent     = '- ' + fmtCurrency(discountAmt);
+    document.getElementById('display-after-discount').textContent = fmtCurrency(afterDiscount);
+    document.getElementById('display-tax').textContent          = fmtCurrency(taxAmt);
+    document.getElementById('display-total').textContent        = fmtCurrency(total);
+  };
+
+  /* ── Collect Items ── */
+  function collectItems() {
+    const items = [];
+    for (let i = 0; i < itemCount; i++) {
+      const descEl = document.getElementById(`item-desc-${i}`);
+      if (!descEl) continue;
+      const row = document.getElementById(`item-row-${i}`);
+      if (!row) continue;
+
+      const desc  = descEl.value.trim();
+      const qty   = parseFloat(document.getElementById(`item-qty-${i}`).value || 0);
+      const price = parseFloat(document.getElementById(`item-price-${i}`).value || 0);
+
+      if (!desc) { showToast('All item descriptions are required.', 'error'); return null; }
+      if (qty <= 0) { showToast('Quantity must be greater than 0.', 'error'); return null; }
+      if (price < 0) { showToast('Unit price cannot be negative.', 'error'); return null; }
+
+      items.push({ description: desc, quantity: qty, unit_price: price });
+    }
+    return items;
+  }
+
+  /* ── Handle Create Invoice Submit ── */
+  window.handleCreateInvoice = async (e) => {
+    e.preventDefault();
+
+    const clientVal = document.getElementById('client-select').value;
+    if (!clientVal) { showToast('Please select or add a client.', 'error'); return; }
+
+    const items = collectItems();
+    if (!items || items.length === 0) { showToast('Add at least one invoice item.', 'error'); return; }
+
+    // Validate totals are not negative
+    let subtotal = 0;
+    items.forEach(item => { subtotal += item.quantity * item.unit_price; });
+    if (subtotal < 0) { showToast('Invoice total cannot be negative.', 'error'); return; }
+
+    const discountRate = parseFloat(document.getElementById('discount-rate').value || 0);
+    const discountAmt  = subtotal * (discountRate / 100);
+    const afterDiscount = subtotal - discountAmt;
+    const taxRate = parseFloat(document.getElementById('tax-rate').value || 0);
+    const taxAmt  = afterDiscount * (taxRate / 100);
+    const total   = afterDiscount + taxAmt;
+
+    if (total < 0) { showToast('Invoice total cannot be negative.', 'error'); return; }
+
+    setLoading(true);
+
+    try {
+      // 1. Create new client if needed
+      let clientId = clientVal;
+      if (clientVal === 'new') {
+        const name = document.getElementById('new-client-name').value.trim();
+        if (!name) { showToast('Client name is required.', 'error'); setLoading(false); return; }
+
+        showLoadingOverlay('Saving client…');
+        const newClient = await createClient({
+          name,
+          email:   document.getElementById('new-client-email').value.trim(),
+          phone:   document.getElementById('new-client-phone').value.trim(),
+          address: document.getElementById('new-client-address').value.trim(),
+        });
+        clientId = newClient.id;
+      }
+
+      // 2. Save invoice
+      showLoadingOverlay('Saving invoice…');
+      const invoiceData = {
+        client_id:      clientId,
+        invoice_number: document.getElementById('invoice-number').value,
+        issue_date:     document.getElementById('issue-date').value,
+        due_date:       document.getElementById('due-date').value,
+        subtotal,
+        discount:       discountRate,
+        tax:            taxRate,
+        total,
+      };
+
+      const paymentMethods = collectPaymentMethods();
+      const savedInvoice = await createInvoice(invoiceData, items, paymentMethods);
+
+      // 3. Build full invoice object for PDF (include client info)
+      const clientObj = clientList.find(c => c.id === clientId) || {
+        name:    document.getElementById('new-client-name')?.value || '',
+        email:   document.getElementById('new-client-email')?.value || '',
+        phone:   document.getElementById('new-client-phone')?.value || '',
+        address: document.getElementById('new-client-address')?.value || '',
+      };
+
+      const fullInvoice = {
+        ...savedInvoice,
+        ...invoiceData,
+        clients:          clientObj,
+        payment_methods:  paymentMethods,
+        notes:            document.getElementById('invoice-notes').value.trim(),
+        invoice_items: items.map(item => ({
+          ...item,
+          total: item.quantity * item.unit_price,
+        })),
+      };
+
+      // 4. Generate + download PDF
+      showLoadingOverlay('Generating PDF…');
+      const doc  = downloadInvoicePdf(fullInvoice);
+
+      // 5. Optionally upload to Supabase Storage
+      try {
+        const blob = docToBlob(doc);
+        await uploadPdf(blob, `invoices/${savedInvoice.invoice_number}.pdf`);
+      } catch (upErr) {
+        console.warn('Storage upload skipped (bucket may not exist):', upErr.message);
+      }
+
+      hideLoadingOverlay();
+      showToast('Invoice created and PDF downloaded! ✓', 'success');
+
+      // Redirect to dashboard after short delay
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1800);
+
+    } catch (err) {
+      hideLoadingOverlay();
+      setLoading(false);
+      showToast('Error: ' + err.message, 'error');
+    }
+  };
+
+  /* ════════════════════════════════════════════════════════
+     PAYMENT METHODS — Multi-Account System
+  ════════════════════════════════════════════════════════ */
+
+  /* Toggle a method on/off */
+  window.togglePaymentMethod = (method) => {
+    const check   = document.getElementById(`pm-${method}`);
+    const details = document.getElementById(`pm-details-${method}`);
+    pmState[method].enabled = check.checked;
+    if (details) details.classList.toggle('show', check.checked);
+    // Add first account automatically when enabling
+    if (check.checked && method !== 'cash' && pmState[method].accounts.length === 0) {
+      addAccount(method);
+    }
+    savePmState();
+  };
+
+  /* Add a new account row to a method */
+  window.addAccount = (method) => {
+    if (method === 'bank') {
+      pmState.bank.accounts.push({ bank: '', account: '', holder: '', branch: '' });
+    } else if (method === 'mobile') {
+      pmState.mobile.accounts.push({ provider: 'Airtel Money', number: '', holder: '' });
+    } else if (method === 'other') {
+      pmState.other.accounts.push({ method: '', details: '' });
+    }
+    renderAccounts(method);
+    savePmState();
+  };
+
+  /* Remove one account row */
+  window.removeAccount = (method, idx) => {
+    pmState[method].accounts.splice(idx, 1);
+    renderAccounts(method);
+    savePmState();
+  };
+
+  /* Render account rows into the DOM for a given method */
+  function renderAccounts(method) {
+    const wrap = document.getElementById(`pm-${method}-accounts-wrap`);
+    if (!wrap) return;
+    wrap.innerHTML = '';
+
+    pmState[method].accounts.forEach((acct, idx) => {
+      const div = document.createElement('div');
+      div.className = 'pm-account-card';
+
+      if (method === 'bank') {
+        div.innerHTML = `
+          <div class="pm-account-card-header">
+            <span class="pm-account-label">Account ${idx + 1}</span>
+            <button type="button" class="pm-remove-btn" onclick="removeAccount('bank',${idx})" title="Remove">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Bank Name</label>
+              <input type="text" id="pm-bank-${idx}-bank" value="${acct.bank}" placeholder="e.g. National Bank of Malawi" oninput="syncAccount('bank',${idx},'bank',this.value)" />
+            </div>
+            <div class="form-group">
+              <label>Account Number</label>
+              <input type="text" id="pm-bank-${idx}-account" value="${acct.account}" placeholder="e.g. 1010142497" oninput="syncAccount('bank',${idx},'account',this.value)" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Account Holder Name</label>
+              <input type="text" id="pm-bank-${idx}-holder" value="${acct.holder}" placeholder="e.g. Blessings Chidazi" oninput="syncAccount('bank',${idx},'holder',this.value)" />
+            </div>
+            <div class="form-group">
+              <label>Branch (optional)</label>
+              <input type="text" id="pm-bank-${idx}-branch" value="${acct.branch}" placeholder="e.g. Zomba" oninput="syncAccount('bank',${idx},'branch',this.value)" />
+            </div>
+          </div>`;
+
+      } else if (method === 'mobile') {
+        div.innerHTML = `
+          <div class="pm-account-card-header">
+            <span class="pm-account-label">Provider ${idx + 1}</span>
+            <button type="button" class="pm-remove-btn" onclick="removeAccount('mobile',${idx})" title="Remove">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Provider</label>
+              <select id="pm-mobile-${idx}-provider" onchange="syncAccount('mobile',${idx},'provider',this.value)">
+                <option value="Airtel Money"${acct.provider==='Airtel Money'?' selected':''}>Airtel Money</option>
+                <option value="TNM Mpamba"${acct.provider==='TNM Mpamba'?' selected':''}>TNM Mpamba</option>
+                <option value="Other"${acct.provider==='Other'?' selected':''}>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Mobile Number</label>
+              <input type="tel" id="pm-mobile-${idx}-number" value="${acct.number}" placeholder="e.g. +265 999 378 615" oninput="syncAccount('mobile',${idx},'number',this.value)" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Account Name / Business Name</label>
+            <input type="text" id="pm-mobile-${idx}-holder" value="${acct.holder}" placeholder="e.g. Blessings Chidazi" oninput="syncAccount('mobile',${idx},'holder',this.value)" />
+          </div>`;
+
+      } else if (method === 'other') {
+        div.innerHTML = `
+          <div class="pm-account-card-header">
+            <span class="pm-account-label">Method ${idx + 1}</span>
+            <button type="button" class="pm-remove-btn" onclick="removeAccount('other',${idx})" title="Remove">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Method Name</label>
+              <input type="text" id="pm-other-${idx}-method" value="${acct.method}" placeholder="e.g. PayPal, Cheque, Crypto" oninput="syncAccount('other',${idx},'method',this.value)" />
+            </div>
+            <div class="form-group">
+              <label>Details</label>
+              <input type="text" id="pm-other-${idx}-details" value="${acct.details}" placeholder="e.g. payments@company.com" oninput="syncAccount('other',${idx},'details',this.value)" />
+            </div>
+          </div>`;
+      }
+
+      wrap.appendChild(div);
+    });
+  }
+
+  /* Sync a single field change into state */
+  window.syncAccount = (method, idx, field, value) => {
+    if (pmState[method].accounts[idx]) {
+      pmState[method].accounts[idx][field] = value;
+      savePmState();
+    }
+  };
+
+  /* Save entire pmState to localStorage */
+  window.savePmState = function savePmState() {
+    // Update cash instructions from DOM
+    const cashEl = document.getElementById('pm-cash-instructions');
+    if (cashEl) pmState.cash.instructions = cashEl.value;
+    // Update enabled flags from checkboxes
+    ['bank','mobile','cash','other'].forEach(m => {
+      const cb = document.getElementById(`pm-${m}`);
+      if (cb) pmState[m].enabled = cb.checked;
+    });
+    localStorage.setItem('invoiceflow_pm_state', JSON.stringify(pmState));
+  };
+
+  /* Restore pmState from localStorage and re-render UI */
+  function restorePaymentMethods() {
+    const saved = localStorage.getItem('invoiceflow_pm_state');
+    if (saved) {
+      try {
+        const loaded = JSON.parse(saved);
+        // Merge carefully so new keys don't break old saves
+        ['bank','mobile','other'].forEach(m => {
+          if (loaded[m]) {
+            pmState[m].enabled  = !!loaded[m].enabled;
+            pmState[m].accounts = Array.isArray(loaded[m].accounts) ? loaded[m].accounts : [];
+          }
+        });
+        if (loaded.cash) {
+          pmState.cash.enabled      = !!loaded.cash.enabled;
+          pmState.cash.instructions = loaded.cash.instructions || '';
+        }
+      } catch(e) { /* ignore corrupt data */ }
+    }
+
+    // Apply to DOM
+    ['bank','mobile','cash','other'].forEach(method => {
+      const cb      = document.getElementById(`pm-${method}`);
+      const details = document.getElementById(`pm-details-${method}`);
+      if (!cb) return;
+      cb.checked = pmState[method].enabled;
+      if (details) details.classList.toggle('show', pmState[method].enabled);
+      if (method !== 'cash') renderAccounts(method);
+    });
+
+    // Restore cash instructions
+    const cashEl = document.getElementById('pm-cash-instructions');
+    if (cashEl) cashEl.value = pmState.cash.instructions;
+  }
+
+  /* Collect methods for PDF generation */
+  function collectPaymentMethods() {
+    const methods = [];
+
+    if (pmState.bank.enabled && pmState.bank.accounts.length > 0) {
+      methods.push({ type: 'Bank Transfer', accounts: [...pmState.bank.accounts] });
+    }
+    if (pmState.mobile.enabled && pmState.mobile.accounts.length > 0) {
+      methods.push({ type: 'Mobile Money', accounts: [...pmState.mobile.accounts] });
+    }
+    if (pmState.cash.enabled) {
+      const instr = document.getElementById('pm-cash-instructions')?.value.trim() || '';
+      methods.push({ type: 'Cash', accounts: [{ instructions: instr }] });
+    }
+    if (pmState.other.enabled && pmState.other.accounts.length > 0) {
+      // Build display name from first account's method field
+      const label = pmState.other.accounts[0]?.method || 'Other';
+      methods.push({ type: label, accounts: [...pmState.other.accounts] });
+    }
+
+    return methods;
+  }
+
+  /* ── Logout ── */
+  window.handleLogout = async () => {
+    const { logout: doLogout } = await import('./auth.js');
+    await doLogout();
+  };
+
+  /* ── Logo Upload ── */
+  // Restore saved logo on page load
+  (function restoreLogo() {
+    const saved = localStorage.getItem('invoiceflow_logo');
+    if (saved) {
+      document.getElementById('logo-preview').src = saved;
+      document.getElementById('logo-preview-wrap').style.display = 'flex';
+      document.getElementById('logo-remove-btn').style.display = 'inline-flex';
+    }
+  })();
+
+  window.handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { showToast('Logo file must be under 2MB.', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target.result;
+      // Get natural pixel dimensions before saving
+      const img = new Image();
+      img.onload = function () {
+        localStorage.setItem('invoiceflow_logo',   dataUrl);
+        localStorage.setItem('invoiceflow_logo_w', String(this.naturalWidth));
+        localStorage.setItem('invoiceflow_logo_h', String(this.naturalHeight));
+        document.getElementById('logo-preview').src = dataUrl;
+        document.getElementById('logo-preview-wrap').style.display = 'flex';
+        document.getElementById('logo-remove-btn').style.display  = 'inline-flex';
+        showToast('Logo saved — it will appear in all PDFs.', 'success');
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.removeLogo = () => {
+    localStorage.removeItem('invoiceflow_logo');
+    localStorage.removeItem('invoiceflow_logo_w');
+    localStorage.removeItem('invoiceflow_logo_h');
+    document.getElementById('logo-preview').src = '';
+    document.getElementById('logo-preview-wrap').style.display = 'none';
+    document.getElementById('logo-remove-btn').style.display = 'none';
+    document.getElementById('logo-upload').value = '';
+    showToast('Logo removed.', 'info');
+  };
+
+  /* ── UI Helpers ── */
+  function setLoading(loading) {
+    const btn  = document.getElementById('submit-btn');
+    const text = document.getElementById('submit-btn-text');
+    const spin = document.getElementById('submit-spinner');
+    btn.disabled = loading;
+    text.textContent = loading ? 'Saving…' : 'Save Invoice & Download PDF';
+    spin.classList.toggle('hidden', !loading);
+  }
+
+  function showLoadingOverlay(msg) {
+    document.getElementById('loading-msg').textContent = msg;
+    document.getElementById('loading-overlay').classList.add('show');
+  }
+  function hideLoadingOverlay() {
+    document.getElementById('loading-overlay').classList.remove('show');
+  }
+
+  function fmtCurrency(amount) {
+    const num = Number(amount || 0);
+    return 'MK ' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const icons = {
+      success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+      error:   '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      info:    '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    };
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `${icons[type] || icons.info}${message}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3200);
+  }
+</script>
+</body>
+</html>

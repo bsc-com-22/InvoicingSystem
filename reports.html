@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports – InvoiceFlow</title>
+  <meta name="description" content="InvoiceFlow reports: revenue analytics, invoice trends, and payment insights." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%232563EB'/><text y='.9em' font-size='60' x='20'>📄</text></svg>" />
+  <style>
+    /* ── Reports Page Styles ── */
+    .reports-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .reports-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .chart-card-full {
+      grid-column: 1 / -1;
+    }
+    .chart-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .chart-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+    .chart-subtitle { font-size: 0.78rem; color: var(--text-muted); }
+    .chart-value { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
+    .chart-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+    .chart-change.up { background: var(--success-bg); color: var(--success); }
+    .chart-change.down { background: var(--danger-bg); color: var(--danger); }
+    .chart-change.neutral { background: var(--accent-light); color: var(--accent); }
+
+    /* Canvas Chart */
+    .chart-canvas-wrap {
+      position: relative;
+      width: 100%;
+    }
+    canvas.chart { width: 100% !important; }
+
+    /* Donut Chart */
+    .donut-wrap {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .donut-canvas { flex-shrink: 0; }
+    .donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legend-label { color: var(--text-muted); flex: 1; }
+    .legend-val { font-weight: 700; color: var(--text-light); }
+    .legend-pct { color: var(--text-dim); font-size: 0.75rem; }
+
+    /* Mini KPI cards */
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card:hover { border-color: var(--border-accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--accent);
+      border-radius: 0 3px 3px 0;
+    }
+    .kpi-card.green::before { background: var(--success); }
+    .kpi-card.orange::before { background: var(--warning); }
+    .kpi-card.red::before { background: var(--danger); }
+    .kpi-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 8px; }
+    .kpi-val { font-size: 1.4rem; font-weight: 700; line-height: 1.2; }
+    .kpi-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* Period selector */
+    .period-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-dark);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+    }
+    .period-tab {
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      transition: all var(--transition);
+    }
+    .period-tab.active { background: var(--accent); color: white; }
+    .period-tab:hover:not(.active) { color: var(--text-light); }
+
+    /* Overdue table styled */
+    .overdue-list { display: flex; flex-direction: column; gap: 0; }
+    .overdue-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .overdue-item:last-child { border-bottom: none; }
+    .overdue-item-left { display: flex; flex-direction: column; gap: 2px; }
+    .overdue-inv { font-size: 0.82rem; font-weight: 600; color: var(--accent); font-family: monospace; }
+    .overdue-client { font-size: 0.78rem; color: var(--text-muted); }
+    .overdue-days { font-size: 0.72rem; background: var(--danger-bg); color: var(--danger); padding: 3px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+    .overdue-amount { font-size: 0.9rem; font-weight: 700; }
+
+    /* Empty state */
+    .chart-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      gap: 10px;
+    }
+    .chart-empty svg { width: 40px; height: 40px; opacity: 0.3; }
+    .chart-empty p { font-size: 0.85rem; }
+
+    /* Month label on bar chart */
+    .bar-chart-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 160px;
+      padding-top: 10px;
+    }
+    .bar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      gap: 6px;
+    }
+    .bar-col-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 120px;
+      width: 100%;
+    }
+    .bar-col {
+      flex: 1;
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      transition: height 0.6s ease, opacity var(--transition);
+      cursor: pointer;
+      position: relative;
+    }
+    .bar-col:hover { opacity: 0.8; }
+    .bar-col.revenue-bar { background: var(--accent); }
+    .bar-col.pending-bar { background: var(--warning); opacity: 0.7; }
+    .bar-month { font-size: 0.68rem; color: var(--text-dim); font-weight: 600; }
+
+    /* Tooltip */
+    .bar-tooltip {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: var(--shadow-sm);
+      display: none;
+      z-index: 10;
+    }
+    .bar-col:hover .bar-tooltip { display: block; }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      .reports-grid { grid-template-columns: 1fr; }
+      .reports-grid-3 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .reports-grid-3 { grid-template-columns: 1fr; }
+      .donut-wrap { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ══════════════════ SIDEBAR ═════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5V8H18M8 13h8M8 17h5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="logo-text">InvoiceFlow</div>
+          <div class="logo-sub">Invoice Management</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+
+      <a class="nav-item" href="dashboard.html" id="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+
+      <a class="nav-item" href="create-invoice.html" id="nav-create">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Create Invoice
+      </a>
+
+      <a class="nav-item active" href="reports.html" id="nav-reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Reports
+      </a>
+
+      <div class="nav-section-label" style="margin-top:20px;">Account</div>
+
+      <a class="nav-item" href="settings.html" id="nav-settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">U</div>
+        <div class="user-details">
+          <div class="user-name" id="user-name">Loading…</div>
+          <div class="user-email" id="user-email">—</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-full btn-sm" onclick="handleLogout()" id="logout-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+  <div class="main-content">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Reports & Analytics</h2>
+        <p id="topbar-date">Loading…</p>
+      </div>
+      <div class="topbar-right">
+        <div class="period-tabs">
+          <button class="period-tab" onclick="setPeriod(3)"  id="period-3">3M</button>
+          <button class="period-tab active" onclick="setPeriod(6)"  id="period-6">6M</button>
+          <button class="period-tab" onclick="setPeriod(12)" id="period-12">12M</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="page-content">
+
+      <!-- ── KPI Row ── -->
+      <div class="reports-grid-3" id="kpi-row">
+        <div class="kpi-card green">
+          <div class="kpi-label">Total Revenue (Paid)</div>
+          <div class="kpi-val" id="kpi-revenue">—</div>
+          <div class="kpi-sub" id="kpi-revenue-sub">from — paid invoices</div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-label">Outstanding Balance</div>
+          <div class="kpi-val" id="kpi-outstanding">—</div>
+          <div class="kpi-sub" id="kpi-outstanding-sub">across — pending invoices</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">Overdue Amount</div>
+          <div class="kpi-val" id="kpi-overdue">—</div>
+          <div class="kpi-sub" id="kpi-overdue-sub">— invoices past due date</div>
+        </div>
+      </div>
+
+      <!-- ── Charts Row ── -->
+      <div class="reports-grid">
+
+        <!-- Monthly Revenue Bar Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Monthly Revenue</div>
+              <div class="chart-subtitle">Paid vs Outstanding per month</div>
+            </div>
+          </div>
+          <div class="bar-chart-wrap" id="bar-chart"></div>
+          <div style="display:flex;gap:16px;margin-top:12px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text-muted);">
+              <div style="width:10px;height:10px;border-radius:2px;background:var(--accent);"></div> Paid
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--text-muted);">
+              <div style="width:10px;height:10px;border-radius:2px;background:var(--warning);opacity:0.7;"></div> Pending
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice Status Donut -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Invoice Breakdown</div>
+              <div class="chart-subtitle">Status distribution by count</div>
+            </div>
+          </div>
+          <div class="donut-wrap" id="donut-wrap">
+            <canvas id="donut-canvas" width="140" height="140" class="donut-canvas"></canvas>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Second Row ── -->
+      <div class="reports-grid">
+
+        <!-- Top Clients -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Top Clients</div>
+              <div class="chart-subtitle">By total invoiced amount (MWK)</div>
+            </div>
+          </div>
+          <div id="top-clients-list"></div>
+        </div>
+
+        <!-- Overdue Invoices -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Overdue Invoices</div>
+              <div class="chart-subtitle">Pending invoices past their due date</div>
+            </div>
+          </div>
+          <div class="overdue-list" id="overdue-list"></div>
+        </div>
+      </div>
+
+      <!-- ── Payment Method Breakdown ── -->
+      <div class="reports-grid">
+        <div class="chart-card chart-card-full" style="grid-column:unset;">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Invoice Activity</div>
+              <div class="chart-subtitle">Invoices created by month</div>
+            </div>
+          </div>
+          <div class="bar-chart-wrap" id="activity-chart" style="height:120px;"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Summary Stats</div>
+              <div class="chart-subtitle">All-time totals</div>
+            </div>
+          </div>
+          <div id="summary-stats"></div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script type="module">
+  import { requireAuth, logout } from './auth.js';
+  import { getInvoices } from './invoices.js';
+
+  let allInvoices = [];
+  let currentPeriod = 6;
+
+  /* ── Init ── */
+  (async () => {
+    const session = await requireAuth();
+    if (!session) return;
+
+    document.getElementById('topbar-date').textContent =
+      new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    const user = session.user;
+    document.getElementById('user-avatar').textContent = (user.email || 'U').substring(0, 2).toUpperCase();
+    document.getElementById('user-name').textContent = user.user_metadata?.full_name || 'User';
+    document.getElementById('user-email').textContent = user.email;
+
+    await loadData();
+  })();
+
+  async function loadData() {
+    try {
+      allInvoices = await getInvoices();
+      renderAll();
+    } catch (e) {
+      showToast('Failed to load data: ' + e.message, 'error');
+    }
+  }
+
+  /* ── Period ── */
+  window.setPeriod = (m) => {
+    currentPeriod = m;
+    document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`period-${m}`).classList.add('active');
+    renderAll();
+  };
+
+  /* ── Render All ── */
+  function renderAll() {
+    const filtered = filterByPeriod(allInvoices, currentPeriod);
+    renderKPIs(filtered);
+    renderBarChart(filtered);
+    renderDonut(filtered);
+    renderTopClients(filtered);
+    renderOverdue(filtered);
+    renderActivityChart(filtered);
+    renderSummaryStats(allInvoices);
+  }
+
+  /* ── Filter by period ── */
+  function filterByPeriod(invoices, months) {
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - months);
+    return invoices.filter(inv => new Date(inv.issue_date) >= cutoff);
+  }
+
+  /* ── KPIs ── */
+  function renderKPIs(invoices) {
+    const paid    = invoices.filter(i => i.status === 'paid');
+    const pending = invoices.filter(i => i.status !== 'paid');
+    const overdue = pending.filter(i => i.due_date && new Date(i.due_date) < new Date());
+
+    const revenue     = paid.reduce((s, i) => s + (i.total || 0), 0);
+    const outstanding = pending.reduce((s, i) => s + (i.total || 0), 0);
+    const overdueAmt  = overdue.reduce((s, i) => s + (i.total || 0), 0);
+
+    document.getElementById('kpi-revenue').textContent = fmtCurrency(revenue);
+    document.getElementById('kpi-revenue-sub').textContent = `from ${paid.length} paid invoice${paid.length !== 1 ? 's' : ''}`;
+    document.getElementById('kpi-outstanding').textContent = fmtCurrency(outstanding);
+    document.getElementById('kpi-outstanding-sub').textContent = `across ${pending.length} pending invoice${pending.length !== 1 ? 's' : ''}`;
+    document.getElementById('kpi-overdue').textContent = fmtCurrency(overdueAmt);
+    document.getElementById('kpi-overdue-sub').textContent = `${overdue.length} invoice${overdue.length !== 1 ? 's' : ''} past due date`;
+  }
+
+  /* ── Bar Chart (monthly revenue) ── */
+  function renderBarChart(invoices) {
+    const months = getLastNMonths(currentPeriod);
+    const paid   = groupByMonth(invoices.filter(i => i.status === 'paid'));
+    const pend   = groupByMonth(invoices.filter(i => i.status !== 'paid'));
+
+    const maxVal = Math.max(1, ...months.map(m => (paid[m] || 0) + (pend[m] || 0)));
+    const container = document.getElementById('bar-chart');
+
+    if (invoices.length === 0) {
+      container.innerHTML = `<div class="chart-empty" style="width:100%;height:100%;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><p>No data for this period</p></div>`;
+      return;
+    }
+
+    container.innerHTML = months.map(monthKey => {
+      const paidAmt = paid[monthKey] || 0;
+      const pendAmt = pend[monthKey] || 0;
+      const paidH = Math.round((paidAmt / maxVal) * 120);
+      const pendH = Math.round((pendAmt / maxVal) * 120);
+      const label = monthKey.substring(5); // "MM"
+      const monthName = new Date(monthKey + '-01').toLocaleDateString('en-US', { month: 'short' });
+
+      return `<div class="bar-group">
+        <div class="bar-col-wrap">
+          <div class="bar-col revenue-bar" style="height:${Math.max(4, paidH)}px;">
+            <div class="bar-tooltip">${monthName}: ${fmtCurrency(paidAmt)}</div>
+          </div>
+          <div class="bar-col pending-bar" style="height:${Math.max(pendAmt > 0 ? 4 : 0, pendH)}px;">
+            <div class="bar-tooltip">${monthName} Pending: ${fmtCurrency(pendAmt)}</div>
+          </div>
+        </div>
+        <div class="bar-month">${monthName}</div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ── Donut Chart ── */
+  function renderDonut(invoices) {
+    const paid     = invoices.filter(i => i.status === 'paid').length;
+    const pending  = invoices.filter(i => i.status !== 'paid' && !(i.due_date && new Date(i.due_date) < new Date())).length;
+    const overdue  = invoices.filter(i => i.status !== 'paid' && i.due_date && new Date(i.due_date) < new Date()).length;
+    const total    = paid + pending + overdue || 1;
+
+    const data = [
+      { label: 'Paid',    val: paid,    color: '#22C55E', pct: Math.round(paid / total * 100) },
+      { label: 'Pending', val: pending, color: '#F59E0B', pct: Math.round(pending / total * 100) },
+      { label: 'Overdue', val: overdue, color: '#EF4444', pct: Math.round(overdue / total * 100) },
+    ].filter(d => d.val > 0);
+
+    // Draw canvas
+    const canvas = document.getElementById('donut-canvas');
+    const ctx = canvas.getContext('2d');
+    const cx = 70, cy = 70, r = 55, innerR = 32;
+    ctx.clearRect(0, 0, 140, 140);
+
+    if (data.length === 0) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = r - innerR;
+      ctx.stroke();
+    } else {
+      let startAngle = -Math.PI / 2;
+      data.forEach(d => {
+        const sweep = (d.val / total) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, (r + innerR) / 2, startAngle, startAngle + sweep);
+        ctx.strokeStyle = d.color;
+        ctx.lineWidth = r - innerR;
+        ctx.stroke();
+        startAngle += sweep;
+      });
+    }
+
+    // Center text
+    ctx.fillStyle = 'rgba(241,245,249,0.9)';
+    ctx.font = 'bold 20px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(total, cx, cy + 4);
+    ctx.fillStyle = 'rgba(148,163,184,0.8)';
+    ctx.font = '9px Inter, sans-serif';
+    ctx.fillText('invoices', cx, cy + 16);
+
+    // Legend
+    const legend = document.getElementById('donut-legend');
+    if (data.length === 0) {
+      legend.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem;">No data for this period</div>';
+    } else {
+      legend.innerHTML = data.map(d => `
+        <div class="legend-item">
+          <div class="legend-dot" style="background:${d.color};"></div>
+          <div class="legend-label">${d.label}</div>
+          <div class="legend-val">${d.val}</div>
+          <div class="legend-pct">${d.pct}%</div>
+        </div>`).join('');
+    }
+  }
+
+  /* ── Top Clients ── */
+  function renderTopClients(invoices) {
+    const map = {};
+    invoices.forEach(inv => {
+      const name = inv.clients?.name || 'Unknown';
+      if (!map[name]) map[name] = { name, total: 0, count: 0, paid: 0 };
+      map[name].total += inv.total || 0;
+      map[name].count++;
+      if (inv.status === 'paid') map[name].paid++;
+    });
+
+    const clients = Object.values(map).sort((a, b) => b.total - a.total).slice(0, 6);
+    const maxTotal = clients[0]?.total || 1;
+    const container = document.getElementById('top-clients-list');
+
+    if (clients.length === 0) {
+      container.innerHTML = `<div class="chart-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>No client data for this period</p></div>`;
+      return;
+    }
+
+    container.innerHTML = clients.map((c, i) => {
+      const barW = Math.round((c.total / maxTotal) * 100);
+      return `
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:white;flex-shrink:0;">${i + 1}</div>
+              <span style="font-size:0.875rem;font-weight:600;">${c.name}</span>
+            </div>
+            <span style="font-size:0.875rem;font-weight:700;color:var(--accent);">${fmtCurrency(c.total)}</span>
+          </div>
+          <div style="background:var(--bg-dark);border-radius:3px;height:5px;overflow:hidden;">
+            <div style="width:${barW}%;height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:3px;transition:width 0.6s ease;"></div>
+          </div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px;">${c.count} invoice${c.count !== 1 ? 's' : ''} · ${c.paid} paid</div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ── Overdue invoices ── */
+  function renderOverdue(invoices) {
+    const today = new Date();
+    const overdue = invoices
+      .filter(i => i.status !== 'paid' && i.due_date && new Date(i.due_date) < today)
+      .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+
+    const container = document.getElementById('overdue-list');
+
+    if (overdue.length === 0) {
+      container.innerHTML = `
+        <div class="chart-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <p style="color:var(--success);">No overdue invoices! 🎉</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="overdue-list">` + overdue.slice(0, 6).map(inv => {
+      const daysOver = Math.floor((today - new Date(inv.due_date)) / (1000 * 60 * 60 * 24));
+      const client = inv.clients?.name || '—';
+      return `
+        <div class="overdue-item">
+          <div class="overdue-item-left">
+            <div class="overdue-inv">${inv.invoice_number || '—'}</div>
+            <div class="overdue-client">${client}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="overdue-days">${daysOver}d overdue</div>
+            <div class="overdue-amount">${fmtCurrency(inv.total)}</div>
+          </div>
+        </div>`;
+    }).join('') + `</div>`;
+  }
+
+  /* ── Activity chart (invoices created per month) ── */
+  function renderActivityChart(invoices) {
+    const months = getLastNMonths(currentPeriod);
+    const grouped = {};
+    invoices.forEach(inv => {
+      const key = inv.issue_date?.substring(0, 7);
+      if (key) { grouped[key] = (grouped[key] || 0) + 1; }
+    });
+
+    const maxVal = Math.max(1, ...months.map(m => grouped[m] || 0));
+    const container = document.getElementById('activity-chart');
+
+    if (invoices.length === 0) {
+      container.innerHTML = `<div class="chart-empty" style="width:100%;"><p>No data</p></div>`;
+      return;
+    }
+
+    container.innerHTML = months.map(monthKey => {
+      const count = grouped[monthKey] || 0;
+      const h = Math.round((count / maxVal) * 100);
+      const monthName = new Date(monthKey + '-01').toLocaleDateString('en-US', { month: 'short' });
+      return `<div class="bar-group">
+        <div class="bar-col-wrap" style="height:90px;">
+          <div class="bar-col revenue-bar" style="height:${Math.max(count > 0 ? 4 : 0, h)}px;background:linear-gradient(180deg,var(--accent),var(--primary));">
+            <div class="bar-tooltip">${monthName}: ${count} invoice${count !== 1 ? 's' : ''}</div>
+          </div>
+        </div>
+        <div class="bar-month">${monthName}</div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ── Summary stats ── */
+  function renderSummaryStats(invoices) {
+    const paid     = invoices.filter(i => i.status === 'paid');
+    const pending  = invoices.filter(i => i.status !== 'paid');
+    const revenue  = paid.reduce((s, i) => s + (i.total || 0), 0);
+    const outstanding = pending.reduce((s, i) => s + (i.total || 0), 0);
+    const avgInv   = invoices.length > 0 ? (invoices.reduce((s,i) => s + (i.total || 0), 0) / invoices.length) : 0;
+
+    const stats = [
+      { label: 'Total Invoices', val: invoices.length, sub: 'all time' },
+      { label: 'Paid Invoices',  val: paid.length, sub: `${invoices.length > 0 ? Math.round(paid.length / invoices.length * 100) : 0}% collection rate` },
+      { label: 'Total Revenue',  val: fmtCurrency(revenue), sub: 'all time collected' },
+      { label: 'Outstanding',    val: fmtCurrency(outstanding), sub: 'awaiting payment' },
+      { label: 'Avg Invoice Value', val: fmtCurrency(avgInv), sub: 'per invoice' },
+    ];
+
+    document.getElementById('summary-stats').innerHTML = stats.map(s => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:0.82rem;font-weight:500;">${s.label}</div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px;">${s.sub}</div>
+        </div>
+        <div style="font-size:0.95rem;font-weight:700;color:var(--accent);">${s.val}</div>
+      </div>`).join('');
+  }
+
+  /* ── Helpers ── */
+  function getLastNMonths(n) {
+    const months = [];
+    const now = new Date();
+    for (let i = n - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      months.push(key);
+    }
+    return months;
+  }
+
+  function groupByMonth(invoices) {
+    const map = {};
+    invoices.forEach(inv => {
+      const key = inv.issue_date?.substring(0, 7);
+      if (key) map[key] = (map[key] || 0) + (inv.total || 0);
+    });
+    return map;
+  }
+
+  function fmtCurrency(amount) {
+    const num = Number(amount || 0);
+    return 'MK ' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  /* ── Logout ── */
+  window.handleLogout = async () => {
+    const { logout: doLogout } = await import('./auth.js');
+    await doLogout();
+  };
+
+  /* ── Toast ── */
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const icons = {
+      success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+      error:   '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      info:    '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    };
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `${icons[type] || icons.info}${message}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3200);
+  }
+</script>
+</body>
+</html>

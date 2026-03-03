@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InvoiceFlow – Sign In</title>
+  <meta name="description" content="InvoiceFlow – Professional Invoice & Receipt Management. Sign in to manage your invoices and clients." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%232563EB'/><text y='.9em' font-size='60' x='20'>📄</text></svg>" />
+</head>
+<body class="auth-page">
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <div class="auth-container">
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1v5h5M8 13h8M8 17h5"/>
+        </svg>
+      </div>
+      <h1>InvoiceFlow</h1>
+      <p>Professional Invoice &amp; Receipt Management</p>
+    </div>
+
+    <!-- Auth Card -->
+    <div class="auth-card">
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+      </div>
+
+      <!-- Alert area -->
+      <div id="auth-alert" class="alert" style="display:none;"></div>
+
+      <!-- ── Login Form ── -->
+      <div class="auth-form active" id="form-login">
+        <h2>Welcome back</h2>
+        <p>Sign in to your InvoiceFlow account</p>
+
+        <form id="login-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" name="email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg" id="login-btn">
+            <span id="login-btn-text">Sign In</span>
+            <span id="login-spinner" class="spinner hidden"></span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ── Sign Up Form ── -->
+      <div class="auth-form" id="form-signup">
+        <h2>Create your account</h2>
+        <p>Start managing invoices in minutes — free to use</p>
+
+        <form id="signup-form" onsubmit="handleSignup(event)">
+          <div class="form-group">
+            <label for="signup-email">Email Address</label>
+            <input type="email" id="signup-email" name="email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" name="password" placeholder="Min. 8 characters" minlength="8" required autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label for="signup-confirm">Confirm Password</label>
+            <input type="password" id="signup-confirm" name="confirm" placeholder="Repeat password" required autocomplete="new-password" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg" id="signup-btn">
+            <span id="signup-btn-text">Create Account</span>
+            <span id="signup-spinner" class="spinner hidden"></span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <p style="text-align:center; margin-top:20px; font-size:0.8rem; color:var(--text-dim);">
+      By signing in you agree to our Terms of Service and Privacy Policy.
+    </p>
+  </div>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <script type="module">
+    import { supabaseClient } from './supabaseClient.js';
+    import { login, signUp } from './auth.js';
+    import { showToast } from './utils.js';
+
+    /* ── Redirect if already logged in ── */
+    (async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) window.location.href = 'dashboard.html';
+    })();
+
+    /* ── Tab Switch ── */
+    window.switchTab = (tab) => {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      document.getElementById(`form-${tab}`).classList.add('active');
+      hideAlert();
+    };
+
+    /* ── Show / Hide Alert ── */
+    function showAlert(msg, type = 'error') {
+      const el = document.getElementById('auth-alert');
+      el.className = `alert alert-${type}`;
+      el.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>${msg}`;
+      el.style.display = 'flex';
+    }
+    function hideAlert() {
+      document.getElementById('auth-alert').style.display = 'none';
+    }
+
+    /* ── Loading State ── */
+    function setLoading(form, loading) {
+      const btn  = document.getElementById(`${form}-btn`);
+      const text = document.getElementById(`${form}-btn-text`);
+      const spin = document.getElementById(`${form}-spinner`);
+      btn.disabled = loading;
+      text.textContent = loading ? 'Please wait…' : (form === 'login' ? 'Sign In' : 'Create Account');
+      spin.classList.toggle('hidden', !loading);
+    }
+
+    /* ── Handle Login ── */
+    window.handleLogin = async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const email    = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      setLoading('login', true);
+      try {
+        await login(email, password);
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        showAlert(err.message || 'Login failed. Check your credentials.');
+      } finally {
+        setLoading('login', false);
+      }
+    };
+
+    /* ── Handle Signup ── */
+    window.handleSignup = async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const email    = document.getElementById('signup-email').value.trim();
+      const password = document.getElementById('signup-password').value;
+      const confirm  = document.getElementById('signup-confirm').value;
+
+      if (password !== confirm) {
+        showAlert('Passwords do not match.');
+        return;
+      }
+      if (password.length < 8) {
+        showAlert('Password must be at least 8 characters.');
+        return;
+      }
+
+      setLoading('signup', true);
+      try {
+        await signUp(email, password);
+        showAlert('Account created! Check your email to confirm, then sign in.', 'success');
+        setTimeout(() => switchTab('login'), 2000);
+      } catch (err) {
+        showAlert(err.message || 'Sign up failed. Please try again.');
+      } finally {
+        setLoading('signup', false);
+      }
+    };
+  </script>
+</body>
+</html>

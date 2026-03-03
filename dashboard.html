@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – InvoiceFlow</title>
+  <meta name="description" content="InvoiceFlow dashboard: view invoice summary, manage clients, and track payments." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%232563EB'/><text y='.9em' font-size='60' x='20'>📄</text></svg>" />
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ══════════════════ SIDEBAR ═════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5V8H18M8 13h8M8 17h5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="logo-text">InvoiceFlow</div>
+          <div class="logo-sub">Invoice Management</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+
+      <a class="nav-item active" href="dashboard.html" id="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+
+      <a class="nav-item" href="create-invoice.html" id="nav-create">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Create Invoice
+      </a>
+
+      <a class="nav-item" href="reports.html" id="nav-reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Reports
+      </a>
+      <div class="nav-section-label" style="margin-top:20px;">Account</div>
+
+      <a class="nav-item" href="settings.html" id="nav-settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
+
+      <div class="nav-section-label" style="margin-top:20px;">Quick Filters</div>
+
+      <button class="nav-item" onclick="filterByStatus('all')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        All Invoices
+      </button>
+
+      <button class="nav-item" onclick="filterByStatus('pending')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Pending
+      </button>
+
+      <button class="nav-item" onclick="filterByStatus('paid')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Paid
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">U</div>
+        <div class="user-details">
+          <div class="user-name" id="user-name">Loading…</div>
+          <div class="user-email" id="user-email">—</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-full btn-sm" onclick="handleLogout()" id="logout-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+  <div class="main-content">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Dashboard</h2>
+        <p id="topbar-date">Loading…</p>
+      </div>
+      <div class="topbar-right">
+        <a href="create-invoice.html" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Invoice
+        </a>
+      </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="page-content">
+
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-icon blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="11" y2="17"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-label">Total Invoices</div>
+          </div>
+        </div>
+
+        <div class="stat-card green">
+          <div class="stat-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-paid">—</div>
+            <div class="stat-label">Paid Invoices</div>
+          </div>
+        </div>
+
+        <div class="stat-card orange">
+          <div class="stat-icon orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-pending">—</div>
+            <div class="stat-label">Pending</div>
+          </div>
+        </div>
+
+        <div class="stat-card green">
+          <div class="stat-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-revenue">—</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+        </div>
+
+        <div class="stat-card red">
+          <div class="stat-icon red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-outstanding">—</div>
+            <div class="stat-label">Outstanding Balance</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="filter-status">Status</label>
+          <select id="filter-status" onchange="applyFilters()">
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-from">From Date</label>
+          <input type="date" id="filter-from" onchange="applyFilters()" />
+        </div>
+        <div class="filter-group">
+          <label for="filter-to">To Date</label>
+          <input type="date" id="filter-to" onchange="applyFilters()" />
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-secondary btn-sm" onclick="resetFilters()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Invoice Table -->
+      <div class="table-wrapper">
+        <div class="table-header">
+          <h3>Invoices</h3>
+          <span class="table-count" id="invoice-count">0 records</span>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th onclick="sortBy('invoice_number')" id="th-number">
+                  Invoice # <span class="sort-icon">↕</span>
+                </th>
+                <th>Client</th>
+                <th onclick="sortBy('issue_date')" id="th-issue">
+                  Issue Date <span class="sort-icon">↕</span>
+                </th>
+                <th onclick="sortBy('due_date')" id="th-due">
+                  Due Date <span class="sort-icon">↕</span>
+                </th>
+                <th>Status</th>
+                <th onclick="sortBy('total')" id="th-total" style="text-align:right;">
+                  Amount (MWK) <span class="sort-icon">↕</span>
+                </th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="invoice-tbody" class="tbody">
+              <tr>
+                <td colspan="7">
+                  <div class="table-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <h4>Loading invoices…</h4>
+                    <p>Please wait while we fetch your data.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- ══════════════════ INVOICE VIEW MODAL ══════════════════ -->
+<div class="modal-overlay" id="view-modal">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <h3 id="view-modal-title">Invoice Details</h3>
+      <button class="modal-close" onclick="closeViewModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="view-modal-body" class="invoice-detail"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeViewModal()">Close</button>
+      <button class="btn btn-secondary btn-sm" id="view-dl-btn" onclick="downloadCurrent()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MARK AS PAID MODAL ══════════════════ -->
+<div class="modal-overlay" id="paid-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Mark Invoice as Paid</h3>
+      <button class="modal-close" onclick="closePaidModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px;">
+      This will mark the invoice as <strong style="color:var(--success)">PAID</strong> and generate a receipt PDF. This action cannot be undone.
+    </p>
+    <div class="form-group">
+      <label for="payment-date">Payment Date</label>
+      <input type="date" id="payment-date" />
+    </div>
+    <div class="form-group">
+      <label for="payment-method">Payment Method</label>
+      <select id="payment-method">
+        <option value="Bank Transfer">Bank Transfer</option>
+        <option value="Cash">Cash</option>
+        <option value="Credit Card">Credit Card</option>
+        <option value="PayPal">PayPal</option>
+        <option value="Mobile Money">Mobile Money</option>
+        <option value="Cheque">Cheque</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closePaidModal()">Cancel</button>
+      <button class="btn btn-success" onclick="confirmMarkPaid()" id="confirm-paid-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Confirm & Download Receipt
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p id="loading-msg">Processing…</p>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Supabase + jsPDF CDNs -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script type="module">
+  import { requireAuth, logout, getCurrentUser } from './auth.js';
+  import { getInvoices, getDashboardStats, markInvoicePaid, getInvoiceById } from './invoices.js';
+  import { downloadInvoicePdf, downloadReceiptPdf } from './pdfGenerator.js';
+
+  /* ── State ── */
+  let allInvoices  = [];
+  let currentSort  = { field: 'created_at', dir: 'desc' };
+  let currentInvoice = null;
+  let pendingPaidId  = null;
+
+  /* ── Init ── */
+  (async () => {
+    const session = await requireAuth();
+    if (!session) return;
+
+    // Set date
+    document.getElementById('topbar-date').textContent =
+      new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    // User info
+    const user = session.user;
+    const initials = (user.email || 'U').substring(0, 2).toUpperCase();
+    document.getElementById('user-avatar').textContent = initials;
+    document.getElementById('user-name').textContent = user.user_metadata?.full_name || 'User';
+    document.getElementById('user-email').textContent = user.email;
+
+    // Set today's date as default for payment
+    document.getElementById('payment-date').value = new Date().toISOString().split('T')[0];
+
+    await Promise.all([loadStats(), loadInvoices()]);
+  })();
+
+  /* ── Stats ── */
+  async function loadStats() {
+    try {
+      const stats = await getDashboardStats();
+      document.getElementById('stat-total').textContent  = stats.total;
+      document.getElementById('stat-paid').textContent   = stats.paid;
+      document.getElementById('stat-pending').textContent = stats.pending;
+      document.getElementById('stat-revenue').textContent = fmtCurrency(stats.revenue);
+      document.getElementById('stat-outstanding').textContent = fmtCurrency(stats.outstanding);
+    } catch (e) { console.error('Stats error', e); }
+  }
+
+  /* ── Load Invoices ── */
+  async function loadInvoices(filters = {}) {
+    try {
+      allInvoices = await getInvoices(filters);
+      renderTable();
+    } catch (e) {
+      showToast('Failed to load invoices: ' + e.message, 'error');
+    }
+  }
+
+  /* ── Render Table ── */
+  function renderTable() {
+    const tbody = document.getElementById('invoice-tbody');
+    const count = document.getElementById('invoice-count');
+
+    let data = [...allInvoices];
+
+    // Sort
+    data.sort((a, b) => {
+      let av = a[currentSort.field] ?? '';
+      let bv = b[currentSort.field] ?? '';
+      if (typeof av === 'string') av = av.toLowerCase();
+      if (typeof bv === 'string') bv = bv.toLowerCase();
+      if (av < bv) return currentSort.dir === 'asc' ? -1 : 1;
+      if (av > bv) return currentSort.dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    count.textContent = `${data.length} record${data.length !== 1 ? 's' : ''}`;
+
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="table-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <h4>No invoices found</h4>
+        <p>Create your first invoice to get started.</p>
+      </div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map(inv => {
+      const clientName = inv.clients?.name || '—';
+      const status     = inv.status || 'pending';
+      const isOverdue  = status === 'pending' && inv.due_date && new Date(inv.due_date) < new Date();
+      const badgeClass = status === 'paid' ? 'badge-paid' : (isOverdue ? 'badge-overdue' : 'badge-pending');
+      const badgeLabel = status === 'paid' ? 'Paid' : (isOverdue ? 'Overdue' : 'Pending');
+
+      return `<tr>
+        <td class="font-mono fw-600" style="color:var(--accent)">${inv.invoice_number || '—'}</td>
+        <td>${clientName}</td>
+        <td>${fmtDateShort(inv.issue_date)}</td>
+        <td>${fmtDateShort(inv.due_date)}</td>
+        <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+        <td style="text-align:right;font-weight:600;">${fmtCurrency(inv.total)}</td>
+        <td>
+          <div class="actions">
+            <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${inv.id}')" title="View">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="downloadInvoice('${inv.id}')" title="Download PDF">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            ${status !== 'paid' ? `
+            <button class="btn btn-success btn-sm" onclick="openPaidModal('${inv.id}')" title="Mark as Paid">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ── Sort ── */
+  window.sortBy = (field) => {
+    if (currentSort.field === field) {
+      currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort = { field, dir: 'asc' };
+    }
+    // Update header icons
+    document.querySelectorAll('th .sort-icon').forEach(el => el.textContent = '↕');
+    const thMap = { invoice_number: 'number', issue_date: 'issue', due_date: 'due', total: 'total' };
+    const thEl = document.getElementById(`th-${thMap[field]}`);
+    if (thEl) thEl.querySelector('.sort-icon').textContent = currentSort.dir === 'asc' ? '↑' : '↓';
+    renderTable();
+  };
+
+  /* ── Filters ── */
+  window.applyFilters = () => {
+    const status   = document.getElementById('filter-status').value;
+    const dateFrom = document.getElementById('filter-from').value;
+    const dateTo   = document.getElementById('filter-to').value;
+    loadInvoices({ status, dateFrom, dateTo });
+  };
+
+  window.resetFilters = () => {
+    document.getElementById('filter-status').value = 'all';
+    document.getElementById('filter-from').value   = '';
+    document.getElementById('filter-to').value     = '';
+    loadInvoices();
+  };
+
+  window.filterByStatus = (status) => {
+    document.getElementById('filter-status').value = status;
+    loadInvoices({ status });
+  };
+
+  /* ── View Invoice ── */
+  window.viewInvoice = async (id) => {
+    try {
+      showLoading('Loading invoice…');
+      currentInvoice = await getInvoiceById(id);
+      hideLoading();
+
+      const inv    = currentInvoice;
+      const client = inv.clients || {};
+      const items  = inv.invoice_items || [];
+      const status = inv.status;
+      const isOverdue = status === 'pending' && inv.due_date && new Date(inv.due_date) < new Date();
+      const badgeClass = status === 'paid' ? 'badge-paid' : (isOverdue ? 'badge-overdue' : 'badge-pending');
+
+      document.getElementById('view-modal-title').textContent = `Invoice ${inv.invoice_number}`;
+
+      document.getElementById('view-modal-body').innerHTML = `
+        <div class="flex-between mb-16">
+          <span class="badge ${badgeClass}">${status === 'paid' ? 'Paid' : (isOverdue ? 'Overdue' : 'Pending')}</span>
+          <span class="fw-700" style="font-size:1.25rem;color:var(--accent)">${fmtCurrency(inv.total)}</span>
+        </div>
+        <div class="detail-row"><span class="dl">Invoice Number</span><span class="dv font-mono">${inv.invoice_number}</span></div>
+        <div class="detail-row"><span class="dl">Client</span><span class="dv">${client.name || '—'}</span></div>
+        <div class="detail-row"><span class="dl">Client Email</span><span class="dv">${client.email || '—'}</span></div>
+        <div class="detail-row"><span class="dl">Issue Date</span><span class="dv">${fmtDate(inv.issue_date)}</span></div>
+        <div class="detail-row"><span class="dl">Due Date</span><span class="dv">${fmtDate(inv.due_date)}</span></div>
+        ${status === 'paid' ? `<div class="detail-row"><span class="dl">Payment Date</span><span class="dv text-success">${fmtDate(inv.payment_date)}</span></div>` : ''}
+
+        <div class="detail-section-title">Line Items</div>
+        <table class="items-mini-table">
+          <thead>
+            <tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            ${items.map(item => `
+              <tr>
+                <td>${item.description}</td>
+                <td>${item.quantity}</td>
+                <td>${fmtCurrency(item.unit_price)}</td>
+                <td>${fmtCurrency(item.total)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="divider"></div>
+        <div class="detail-row"><span class="dl">Subtotal</span><span class="dv">${fmtCurrency(inv.subtotal)}</span></div>
+        ${(inv.discount > 0) ? `
+        <div class="detail-row"><span class="dl text-danger">Discount (${inv.discount}%)</span><span class="dv text-danger">- ${fmtCurrency(inv.subtotal * (inv.discount / 100))}</span></div>
+        <div class="detail-row"><span class="dl">After Discount</span><span class="dv">${fmtCurrency(inv.subtotal - inv.subtotal * (inv.discount / 100))}</span></div>` : ''}
+        <div class="detail-row"><span class="dl">Tax (${inv.tax || 0}%)</span><span class="dv">${fmtCurrency((inv.subtotal - inv.subtotal * ((inv.discount||0)/100)) * ((inv.tax || 0) / 100))}</span></div>
+        <div class="detail-row"><span class="dl fw-700" style="color:var(--text-light)">Grand Total</span><span class="dv fw-700" style="color:var(--accent);font-size:1.1rem">${fmtCurrency(inv.total)}</span></div>
+      `;
+
+      document.getElementById('view-modal').classList.add('show');
+    } catch (e) {
+      hideLoading();
+      showToast('Failed to load invoice: ' + e.message, 'error');
+    }
+  };
+
+  window.closeViewModal = () => document.getElementById('view-modal').classList.remove('show');
+
+  window.downloadCurrent = () => {
+    if (!currentInvoice) return;
+    try {
+      downloadInvoicePdf(currentInvoice);
+      showToast('Invoice PDF downloaded!', 'success');
+    } catch (e) { showToast('PDF generation failed: ' + e.message, 'error'); }
+  };
+
+  /* ── Download Invoice (from table) ── */
+  window.downloadInvoice = async (id) => {
+    try {
+      showLoading('Generating PDF…');
+      const inv = await getInvoiceById(id);
+      hideLoading();
+      downloadInvoicePdf(inv);
+      showToast('Invoice PDF downloaded!', 'success');
+    } catch (e) {
+      hideLoading();
+      showToast('Failed: ' + e.message, 'error');
+    }
+  };
+
+  /* ── Mark as Paid ── */
+  window.openPaidModal = (id) => {
+    pendingPaidId = id;
+    document.getElementById('payment-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('paid-modal').classList.add('show');
+  };
+
+  window.closePaidModal = () => {
+    document.getElementById('paid-modal').classList.remove('show');
+    pendingPaidId = null;
+  };
+
+  window.confirmMarkPaid = async () => {
+    if (!pendingPaidId) return;
+    const payDate  = document.getElementById('payment-date').value;
+    const payMethod = document.getElementById('payment-method').value;
+
+    if (!payDate) { showToast('Please select a payment date.', 'error'); return; }
+
+    const btn = document.getElementById('confirm-paid-btn');
+    btn.disabled = true;
+
+    try {
+      showLoading('Updating invoice & generating receipt…');
+      await markInvoicePaid(pendingPaidId, payDate);
+
+      // Fetch full invoice for receipt
+      const inv = await getInvoiceById(pendingPaidId);
+      hideLoading();
+      closePaidModal();
+
+      downloadReceiptPdf(inv, payMethod);
+      showToast('Invoice marked as paid! Receipt downloaded.', 'success');
+
+      // Reload data
+      await Promise.all([loadStats(), loadInvoices()]);
+    } catch (e) {
+      hideLoading();
+      showToast('Error: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  };
+
+  /* ── Logout ── */
+  window.handleLogout = async () => {
+    const { logout: doLogout } = await import('./auth.js');
+    await doLogout();
+  };
+
+  /* ── Helpers ── */
+  function fmtCurrency(amount) {
+    const num = Number(amount || 0);
+    return 'MK ' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function fmtDateShort(d) {
+    if (!d) return '—';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function showLoading(msg = 'Loading…') {
+    document.getElementById('loading-msg').textContent = msg;
+    document.getElementById('loading-overlay').classList.add('show');
+  }
+  function hideLoading() {
+    document.getElementById('loading-overlay').classList.remove('show');
+  }
+
+  window.showToast = showToast;
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const icons = {
+      success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+      error:   '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      info:    '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    };
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `${icons[type] || icons.info}${message}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3200);
+  }
+</script>
+</body>
+</html>
