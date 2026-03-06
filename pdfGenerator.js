@@ -364,9 +364,7 @@ export function generateInvoicePdf(invoice) {
     return doc;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   RECEIPT PDF
-═══════════════════════════════════════════════════════════════════════════ */
+/* ---- RECEIPT PDF----------*/
 export function generateReceiptPdf(invoice, paymentMethod = 'Bank Transfer') {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });

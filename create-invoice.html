@@ -11,6 +11,9 @@
 <body>
 <div class="app-layout">
 
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
   <!-- ══════════════════ SIDEBAR ══════════════════ -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
@@ -23,6 +26,9 @@
           <div class="logo-sub">Invoice Management</div>
         </div>
       </div>
+      <button class="mobile-close-btn" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -66,8 +72,13 @@
 
     <div class="topbar">
       <div class="topbar-left">
-        <h2>Create Invoice</h2>
-        <p>Fill in the details below and generate a professional invoice</p>
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <h2>Create Invoice</h2>
+          <p>Fill in the details below and generate a professional invoice</p>
+        </div>
       </div>
       <div class="topbar-right">
         <a href="dashboard.html" class="btn btn-ghost btn-sm">
@@ -402,7 +413,7 @@
 
 <script type="module">
   import { requireAuth, logout } from './auth.js';
-  import { getClients, createClient, createInvoice, generateInvoiceNumber } from './invoices.js';
+  import { getClients, createClient, createInvoice, generateInvoiceNumber, getInvoiceById, updateInvoiceFull } from './invoices.js';
   import { downloadInvoicePdf, docToBlob } from './pdfGenerator.js';
   import { uploadPdf } from './invoices.js';
 
@@ -419,6 +430,7 @@
   /* ── State ── */
   let itemCount = 0;
   let clientList = [];
+  let editInvoiceId = null;
 
   /* ── Init ── */
   (async () => {
@@ -430,27 +442,105 @@
     document.getElementById('user-name').textContent   = user.user_metadata?.full_name || 'User';
     document.getElementById('user-email').textContent  = user.email;
 
-    // Set default dates
-    const today    = new Date().toISOString().split('T')[0];
-    const due30    = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-    document.getElementById('issue-date').value = today;
-    document.getElementById('due-date').value   = due30;
-
-    // Generate invoice number
-    try {
-      const num = await generateInvoiceNumber();
-      document.getElementById('invoice-number').value = num;
-    } catch (e) { document.getElementById('invoice-number').value = 'INV-0001'; }
-
-    // Load clients
     await loadClients();
 
-    // Add first blank item row
-    addItem();
+    const urlParams = new URLSearchParams(window.location.search);
+    editInvoiceId = urlParams.get('id');
 
-    // Restore saved payment methods
-    restorePaymentMethods();
+    if (editInvoiceId) {
+      document.querySelector('.topbar h2').textContent = 'Edit Invoice';
+      document.getElementById('submit-btn-text').textContent = 'Update Invoice & Download PDF';
+      await loadExistingInvoice(editInvoiceId);
+    } else {
+      // Set default dates
+      const today    = new Date().toISOString().split('T')[0];
+      const due30    = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+      document.getElementById('issue-date').value = today;
+      document.getElementById('due-date').value   = due30;
+
+      // Generate invoice number
+      try {
+        const num = await generateInvoiceNumber();
+        document.getElementById('invoice-number').value = num;
+      } catch (e) { document.getElementById('invoice-number').value = 'INV-0001'; }
+
+      addItem();
+      restorePaymentMethods();
+    }
   })();
+
+  /* ── Load Existing Invoice Data ── */
+  async function loadExistingInvoice(id) {
+    try {
+      showLoadingOverlay('Loading invoice details…');
+      const inv = await getInvoiceById(id);
+      hideLoadingOverlay();
+
+      document.getElementById('invoice-number').value = inv.invoice_number;
+      document.getElementById('issue-date').value     = inv.issue_date;
+      document.getElementById('due-date').value       = inv.due_date;
+      document.getElementById('client-select').value  = inv.client_id;
+      
+      document.getElementById('discount-rate').value  = inv.discount || 0;
+      document.getElementById('tax-rate').value       = inv.tax || 0;
+      document.getElementById('invoice-notes').value  = inv.notes || '';
+
+      const tbody = document.getElementById('items-tbody');
+      tbody.innerHTML = '';
+      itemCount = 0;
+
+      if (inv.invoice_items && inv.invoice_items.length > 0) {
+        inv.invoice_items.forEach((item, idx) => {
+          addItem();
+          document.getElementById(`item-desc-${idx}`).value  = item.description;
+          document.getElementById(`item-qty-${idx}`).value   = item.quantity;
+          document.getElementById(`item-price-${idx}`).value = item.unit_price;
+          calcRow(idx);
+        });
+      } else {
+        addItem();
+      }
+
+      if (inv.payment_methods && inv.payment_methods.length > 0) {
+        ['bank', 'mobile', 'cash', 'other'].forEach(m => { pmState[m].enabled = false; pmState[m].accounts = []; });
+        pmState.cash.instructions = '';
+        
+        inv.payment_methods.forEach(pm => {
+          if (pm.method_type === 'bank') {
+            pmState.bank.enabled = true;
+            pmState.bank.accounts = pm.payment_accounts.map(a => ({ bank: a.provider || '', account: a.account_number || '', holder: a.account_name || '', branch: a.branch || '' }));
+          } else if (pm.method_type === 'mobile') {
+            pmState.mobile.enabled = true;
+            pmState.mobile.accounts = pm.payment_accounts.map(a => ({ provider: a.provider || 'Other', number: a.account_number || '', holder: a.account_name || '' }));
+          } else if (pm.method_type === 'cash') {
+            pmState.cash.enabled = true;
+            if (pm.payment_accounts[0]) pmState.cash.instructions = pm.payment_accounts[0].additional_info || '';
+          } else if (pm.method_type === 'other') {
+            pmState.other.enabled = true;
+            pmState.other.accounts = pm.payment_accounts.map(a => ({ method: a.account_name || '', details: a.additional_info || '' }));
+          }
+        });
+
+        ['bank', 'mobile', 'cash', 'other'].forEach(m => {
+          const cb = document.getElementById(`pm-${m}`);
+          const details = document.getElementById(`pm-details-${m}`);
+          if (cb) cb.checked = pmState[m].enabled;
+          if (details) details.classList.toggle('show', pmState[m].enabled);
+          if (m === 'cash') {
+            const inst = document.getElementById('pm-cash-instructions');
+            if (inst) inst.value = pmState.cash.instructions;
+          } else {
+            renderAccounts(m);
+          }
+        });
+      } else {
+        restorePaymentMethods();
+      }
+    } catch (e) {
+      hideLoadingOverlay();
+      showToast('Error loading invoice: ' + e.message, 'error');
+    }
+  }
 
   /* ── Load Clients into Select ── */
   async function loadClients() {
@@ -617,8 +707,8 @@
         clientId = newClient.id;
       }
 
-      // 2. Save invoice
-      showLoadingOverlay('Saving invoice…');
+      // 2. Save or Update invoice
+      showLoadingOverlay(editInvoiceId ? 'Updating invoice…' : 'Saving invoice…');
       const invoiceData = {
         client_id:      clientId,
         invoice_number: document.getElementById('invoice-number').value,
@@ -628,10 +718,17 @@
         discount:       discountRate,
         tax:            taxRate,
         total,
+        notes:          document.getElementById('invoice-notes').value.trim()
       };
 
       const paymentMethods = collectPaymentMethods();
-      const savedInvoice = await createInvoice(invoiceData, items, paymentMethods);
+      let savedInvoice = null;
+
+      if (editInvoiceId) {
+        savedInvoice = await updateInvoiceFull(editInvoiceId, invoiceData, items, paymentMethods);
+      } else {
+        savedInvoice = await createInvoice(invoiceData, items, paymentMethods);
+      }
 
       // 3. Build full invoice object for PDF (include client info)
       const clientObj = clientList.find(c => c.id === clientId) || {
@@ -666,7 +763,7 @@
       }
 
       hideLoadingOverlay();
-      showToast('Invoice created and PDF downloaded! ✓', 'success');
+      showToast(editInvoiceId ? 'Invoice updated and PDF downloaded! ✓' : 'Invoice created and PDF downloaded! ✓', 'success');
 
       // Redirect to dashboard after short delay
       setTimeout(() => { window.location.href = 'dashboard.html'; }, 1800);
@@ -883,6 +980,12 @@
 
     return methods;
   }
+
+  /* ── Mobile Sidebar Toggle ── */
+  window.toggleSidebar = () => {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  };
 
   /* ── Logout ── */
   window.handleLogout = async () => {

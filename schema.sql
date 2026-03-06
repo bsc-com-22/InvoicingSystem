@@ -28,6 +28,27 @@ CREATE TABLE public.clients (
 CREATE INDEX idx_clients_user_id ON public.clients(user_id);
 
 -- ──────────────────────────────────────────────────────────────────────────
+-- 2.5 CREATE USER SETTINGS TABLE
+-- ──────────────────────────────────────────────────────────────────────────
+CREATE TABLE public.user_settings (
+  user_id            UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  company_name       TEXT,
+  company_email      TEXT,
+  company_phone      TEXT,
+  company_address    TEXT,
+  company_tax        TEXT,
+  company_website    TEXT,
+  payment_terms      TEXT,
+  logo_url           TEXT,
+  logo_w             NUMERIC,
+  logo_h             NUMERIC,
+  logo_file          TEXT,
+  payment_methods    JSONB       DEFAULT '{}'::jsonb,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ──────────────────────────────────────────────────────────────────────────
 -- 3. CREATE INVOICES TABLE
 -- ──────────────────────────────────────────────────────────────────────────
 CREATE TABLE public.invoices (
@@ -96,11 +117,15 @@ ALTER TABLE public.invoices         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoice_items    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payment_methods  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payment_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_settings    ENABLE ROW LEVEL SECURITY;
 
 -- ──────────────────────────────────────────────────────────────────────────
 -- 8. CREATE TABLE POLICIES (Users can only see/edit their own data)
 -- ──────────────────────────────────────────────────────────────────────────
 CREATE POLICY "clients_all" ON public.clients 
+    FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "user_settings_all" ON public.user_settings 
     FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "invoices_all" ON public.invoices 

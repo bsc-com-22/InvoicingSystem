@@ -227,6 +227,9 @@
 <body>
 <div class="app-layout">
 
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
   <!-- ══════════════════ SIDEBAR ═════════════════ -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
@@ -241,6 +244,9 @@
           <div class="logo-sub">Invoice Management</div>
         </div>
       </div>
+      <button class="mobile-close-btn" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -290,8 +296,13 @@
     <!-- Top Bar -->
     <div class="topbar">
       <div class="topbar-left">
-        <h2>Reports & Analytics</h2>
-        <p id="topbar-date">Loading…</p>
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <h2>Reports & Analytics</h2>
+          <p id="topbar-date">Loading…</p>
+        </div>
       </div>
       <div class="topbar-right">
         <div class="period-tabs">
@@ -751,6 +762,12 @@
     const num = Number(amount || 0);
     return 'MK ' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
+
+  /* ── Mobile Sidebar Toggle ── */
+  window.toggleSidebar = () => {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  };
 
   /* ── Logout ── */
   window.handleLogout = async () => {

@@ -192,6 +192,80 @@ export async function updateInvoice(invoiceId, updates) {
 }
 
 /**
+ * Fully update an invoice including its items and payment methods.
+ */
+export async function updateInvoiceFull(invoiceId, invoiceData, items, paymentMethods = []) {
+    if (!items || items.length === 0) {
+        throw new Error('At least one invoice item is required.');
+    }
+
+    // 1. Update invoice row
+    const { data: invoice, error: invErr } = await supabaseClient
+        .from('invoices')
+        .update({ ...invoiceData })
+        .eq('id', invoiceId)
+        .select()
+        .single();
+    if (invErr) throw invErr;
+
+    // 2. Delete existing items and payment methods (cascades)
+    const { error: delItemsErr } = await supabaseClient
+        .from('invoice_items')
+        .delete()
+        .eq('invoice_id', invoiceId);
+    if (delItemsErr) throw delItemsErr;
+
+    const { error: delPmErr } = await supabaseClient
+        .from('payment_methods')
+        .delete()
+        .eq('invoice_id', invoiceId);
+    if (delPmErr) throw delPmErr;
+
+    // 3. Insert new invoice_items
+    const itemRows = items.map(item => ({
+        invoice_id: invoiceId,
+        description: item.description,
+        quantity: Number(item.quantity),
+        unit_price: Number(item.unit_price),
+        total: Number(item.quantity) * Number(item.unit_price),
+    }));
+
+    const { error: itemErr } = await supabaseClient
+        .from('invoice_items')
+        .insert(itemRows);
+    if (itemErr) throw itemErr;
+
+    // 4. Insert payment methods and accounts
+    if (paymentMethods && paymentMethods.length > 0) {
+        for (const pm of paymentMethods) {
+            const { data: methodRow, error: pmErr } = await supabaseClient
+                .from('payment_methods')
+                .insert([{ invoice_id: invoiceId, method_type: pm.type }])
+                .select()
+                .single();
+            if (pmErr) throw pmErr;
+
+            if (pm.accounts && pm.accounts.length > 0) {
+                const acctRows = pm.accounts.map(acct => ({
+                    payment_method_id: methodRow.id,
+                    account_name: acct.holder || acct.method || null,
+                    account_number: acct.account || acct.number || null,
+                    provider: acct.provider || acct.bank || null,
+                    branch: acct.branch || null,
+                    additional_info: acct.instructions || acct.details || null
+                }));
+                const { error: acctErr } = await supabaseClient
+                    .from('payment_accounts')
+                    .insert(acctRows);
+                if (acctErr) throw acctErr;
+            }
+        }
+    }
+
+    return invoice;
+}
+
+/**
  * Mark an invoice as paid.
  * Sets status = 'paid' and records payment_date (defaults to today).
  */
@@ -273,4 +347,39 @@ export function getPdfUrl(path) {
         .from('documents')
         .getPublicUrl(path);
     return data.publicUrl;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   USER SETTINGS OPERATIONS
+═══════════════════════════════════════════════════════════════════════════ */
+
+export async function getUserSettings() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+
+    const { data, error } = await supabaseClient
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+    // PGRST116 is "Results contain 0 rows, single() expected 1 row" - which just means no settings exist yet.
+    if (error && error.code !== 'PGRST116') throw error;
+    return data || null; // return null if no settings yet
+}
+
+export async function updateUserSettings(settingsData) {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Attempt to upsert (insert or update on conflict)
+    // Requires that the table has user_id as PRIMARY KEY or UNIQUE constraint.
+    const { data, error } = await supabaseClient
+        .from('user_settings')
+        .upsert({ user_id: user.id, ...settingsData }, { onConflict: 'user_id' })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
 }
