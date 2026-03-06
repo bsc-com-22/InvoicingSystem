@@ -298,6 +298,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             Logo & Branding
           </button>
+          <button class="settings-nav-item" onclick="switchPanel('clients')" id="snav-clients">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            Clients
+          </button>
           <button class="settings-nav-item" onclick="switchPanel('payment')" id="snav-payment">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             Payment Methods
@@ -545,11 +549,34 @@
                 </div>
 
               </div>
+              </div>
               <div class="form-actions" style="margin-top:20px;">
                 <button class="btn btn-primary" onclick="savePaymentMethods()">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                   Save Payment Methods
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Clients Panel ─────────────────── -->
+          <div class="settings-panel" id="panel-clients">
+            <div class="section-card">
+              <div class="section-card-header">
+                <div class="section-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <div style="flex:1;">
+                  <h3>Clients</h3>
+                  <p>Manage your clients and their contact details</p>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openClientForm()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add Client
+                </button>
+              </div>
+              <div id="clients-list" style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
+                <div style="text-align:center;padding:30px;color:var(--text-muted);"><span class="spinner"></span> Loading clients...</div>
               </div>
             </div>
           </div>
@@ -560,6 +587,59 @@
   </div><!-- /main-content -->
 </div><!-- /app-layout -->
 
+<style>
+/* Client Account Card styling */
+.client-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all var(--transition);
+}
+.client-card:hover {
+  background: rgba(37, 99, 235, 0.04);
+  border-color: var(--border-accent);
+}
+.client-info-main { font-weight: 600; color: var(--text-light); margin-bottom: 4px; }
+.client-info-sub { font-size: 0.8rem; color: var(--text-muted); }
+.client-actions { display: flex; gap: 8px; }
+</style>
+
+<!-- Client Form Modal -->
+<div class="modal-overlay" id="client-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="client-modal-title">Add Client</h3>
+      <button class="modal-close" onclick="closeClientForm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="form-group">
+      <label>Client / Business Name</label>
+      <input type="text" id="client-form-name" placeholder="e.g. Acme Corp" />
+    </div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="client-form-email" placeholder="e.g. contact@acme.com" />
+    </div>
+    <div class="form-group">
+      <label>Phone Number</label>
+      <input type="tel" id="client-form-phone" placeholder="e.g. +265 999 123 456" />
+    </div>
+    <div class="form-group">
+      <label>Address</label>
+      <textarea id="client-form-address" rows="2" placeholder="e.g. Area 3, Lilongwe"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeClientForm()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClientForm()" id="client-form-save-btn">Save Client</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Container -->
 <div id="toast-container"></div>
 
@@ -568,7 +648,7 @@
 
 <script type="module">
   import { requireAuth, logout, getCurrentUser } from './auth.js';
-  import { updateUserSettings } from './invoices.js';
+  import { updateUserSettings, getClients, createClient, updateClient } from './invoices.js';
 
   const pmState = {
     bank:   { enabled: false, accounts: [] },
@@ -589,6 +669,7 @@
     document.getElementById('user-email').textContent = user.email;
 
     loadSavedSettings();
+    loadClientsList();
   })();
 
   /* ── Panel switching ── */
@@ -597,6 +678,7 @@
     document.querySelectorAll('.settings-nav-item').forEach(b => b.classList.remove('active'));
     document.getElementById(`panel-${panel}`).classList.add('active');
     document.getElementById(`snav-${panel}`).classList.add('active');
+    if (panel === 'clients') loadClientsList();
   };
 
   /* ── Load saved settings from localStorage ── */
@@ -982,6 +1064,109 @@
     const { logout: doLogout } = await import('./auth.js');
     await doLogout();
   };
+
+  /* ── Clients Management ── */
+  let currentClients = [];
+  let editingClientId = null;
+
+  async function loadClientsList() {
+    const listEl = document.getElementById('clients-list');
+    try {
+      currentClients = await getClients();
+      if (currentClients.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">No clients found. Click "Add Client" to get started.</div>';
+        return;
+      }
+      
+      listEl.innerHTML = currentClients.map(c => `
+        <div class="client-card">
+          <div>
+            <div class="client-info-main">${escapeHtml(c.name)}</div>
+            <div class="client-info-sub">
+              ${c.email ? escapeHtml(c.email) : 'No email'} · ${c.phone ? escapeHtml(c.phone) : 'No phone'}
+            </div>
+            ${c.address ? `<div class="client-info-sub" style="margin-top:4px;">${escapeHtml(c.address)}</div>` : ''}
+          </div>
+          <div class="client-actions">
+            <button class="btn btn-ghost btn-sm" onclick="editClient('${c.id}')">Edit</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      listEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--danger);">Error loading clients: ${err.message}</div>`;
+    }
+  }
+
+  window.openClientForm = () => {
+    editingClientId = null;
+    document.getElementById('client-modal-title').textContent = 'Add Client';
+    document.getElementById('client-form-name').value = '';
+    document.getElementById('client-form-email').value = '';
+    document.getElementById('client-form-phone').value = '';
+    document.getElementById('client-form-address').value = '';
+    document.getElementById('client-modal').classList.add('show');
+  };
+
+  window.closeClientForm = () => {
+    document.getElementById('client-modal').classList.remove('show');
+  };
+
+  window.editClient = (id) => {
+    const c = currentClients.find(x => x.id === id);
+    if (!c) return;
+    editingClientId = id;
+    document.getElementById('client-modal-title').textContent = 'Edit Client';
+    document.getElementById('client-form-name').value = c.name || '';
+    document.getElementById('client-form-email').value = c.email || '';
+    document.getElementById('client-form-phone').value = c.phone || '';
+    document.getElementById('client-form-address').value = c.address || '';
+    document.getElementById('client-modal').classList.add('show');
+  };
+
+  window.saveClientForm = async () => {
+    const name = document.getElementById('client-form-name').value.trim();
+    if (!name) return showToast('Client Name is required', 'error');
+
+    const payload = {
+      name,
+      email: document.getElementById('client-form-email').value.trim(),
+      phone: document.getElementById('client-form-phone').value.trim(),
+      address: document.getElementById('client-form-address').value.trim(),
+    };
+
+    const btn = document.getElementById('client-form-save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      if (editingClientId) {
+        await updateClient(editingClientId, payload);
+        showToast('Client updated successfully', 'success');
+      } else {
+        await createClient(payload);
+        showToast('Client added successfully', 'success');
+      }
+      closeClientForm();
+      loadClientsList();
+    } catch (e) {
+      showToast('Error saving client: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Client';
+    }
+  };
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, 
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag]));
+  }
 
   /* ── Toast ── */
   function showToast(message, type = 'info') {
