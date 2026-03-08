@@ -302,9 +302,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             Clients
           </button>
-          <button class="settings-nav-item" onclick="switchPanel('payment')" id="snav-payment">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            Payment Methods
+          <button class="settings-nav-item" onclick="switchPanel('password')" id="snav-password">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Change Password
           </button>
         </div>
 
@@ -463,97 +463,32 @@
                 </div>
               </div>
             </div>
-          <!-- ── Payment Methods Panel ─────────────────── -->
-          <div class="settings-panel" id="panel-payment">
-            <div class="section-card" id="payment-methods-card">
+          <!-- ── Change Password Panel ─────────────────── -->
+          <div class="settings-panel" id="panel-password">
+            <div class="section-card">
               <div class="section-card-header">
                 <div class="section-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 </div>
                 <div>
-                  <h3>Payment Methods</h3>
-                  <p>Configure which payment methods appear on your invoices</p>
+                  <h3>Change Password</h3>
+                  <p>Update your account password</p>
                 </div>
               </div>
 
-              <div style="display:flex;flex-direction:column;gap:12px;">
-                <!-- Bank Transfer -->
-                <div class="payment-method-block" id="pm-block-bank">
-                  <label class="payment-method-toggle">
-                    <input type="checkbox" id="pm-bank" onchange="togglePaymentMethod('bank')" />
-                    <span class="pm-toggle-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                    </span>
-                    <span class="pm-toggle-label">Bank Transfer</span>
-                  </label>
-                  <div class="payment-method-details" id="pm-details-bank">
-                    <div id="pm-bank-accounts-wrap"></div>
-                    <button type="button" class="pm-add-account-btn" onclick="addAccount('bank')">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      Add Bank Account
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Mobile Money -->
-                <div class="payment-method-block" id="pm-block-mobile">
-                  <label class="payment-method-toggle">
-                    <input type="checkbox" id="pm-mobile" onchange="togglePaymentMethod('mobile')" />
-                    <span class="pm-toggle-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                    </span>
-                    <span class="pm-toggle-label">Mobile Money</span>
-                  </label>
-                  <div class="payment-method-details" id="pm-details-mobile">
-                    <div id="pm-mobile-accounts-wrap"></div>
-                    <button type="button" class="pm-add-account-btn" onclick="addAccount('mobile')">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      Add Mobile Provider
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Cash -->
-                <div class="payment-method-block" id="pm-block-cash">
-                  <label class="payment-method-toggle">
-                    <input type="checkbox" id="pm-cash" onchange="togglePaymentMethod('cash')" />
-                    <span class="pm-toggle-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </span>
-                    <span class="pm-toggle-label">Cash</span>
-                  </label>
-                  <div class="payment-method-details" id="pm-details-cash">
-                    <div class="form-group" style="margin:0;">
-                      <label for="pm-cash-instructions">Cash Instructions (optional)</label>
-                      <input type="text" id="pm-cash-instructions" placeholder="e.g. Cash accepted at our office. Receipt will be issued." oninput="syncAccount()" />
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Other -->
-                <div class="payment-method-block" id="pm-block-other">
-                  <label class="payment-method-toggle">
-                    <input type="checkbox" id="pm-other" onchange="togglePaymentMethod('other')" />
-                    <span class="pm-toggle-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                    </span>
-                    <span class="pm-toggle-label">Other Method</span>
-                  </label>
-                  <div class="payment-method-details" id="pm-details-other">
-                    <div id="pm-other-accounts-wrap"></div>
-                    <button type="button" class="pm-add-account-btn" onclick="addAccount('other')">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      Add Account
-                    </button>
-                  </div>
-                </div>
-
+              <div class="form-group">
+                <label for="new-password">New Password</label>
+                <input type="password" id="new-password" placeholder="Min. 8 characters" minlength="8" />
               </div>
+              <div class="form-group">
+                <label for="confirm-password">Confirm New Password</label>
+                <input type="password" id="confirm-password" placeholder="Repeat password" />
               </div>
+
               <div class="form-actions" style="margin-top:20px;">
-                <button class="btn btn-primary" onclick="savePaymentMethods()">
+                <button class="btn btn-primary" onclick="handleChangePassword()" id="change-password-btn">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  Save Payment Methods
+                  Update Password
                 </button>
               </div>
             </div>
@@ -647,15 +582,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <script type="module">
-  import { requireAuth, logout, getCurrentUser } from './auth.js';
+  import { requireAuth, logout, getCurrentUser, updatePassword } from './auth.js';
   import { updateUserSettings, getClients, createClient, updateClient } from './invoices.js';
-
-  const pmState = {
-    bank:   { enabled: false, accounts: [] },
-    mobile: { enabled: false, accounts: [] },
-    cash:   { enabled: false, instructions: '' },
-    other:  { enabled: false, accounts: [] },
-  };
 
   /* ── Init ── */
   (async () => {
@@ -708,36 +636,7 @@
       );
     }
 
-    // Load payment methods
-    const pmSaved = localStorage.getItem('invoiceflow_pm_state');
-    if (pmSaved) {
-      try {
-        const loaded = JSON.parse(pmSaved);
-        ['bank','mobile','other'].forEach(m => {
-          if (loaded[m]) {
-            pmState[m].enabled = !!loaded[m].enabled;
-            pmState[m].accounts = Array.isArray(loaded[m].accounts) ? loaded[m].accounts : [];
-          }
-        });
-        if (loaded.cash) {
-          pmState.cash.enabled = !!loaded.cash.enabled;
-          pmState.cash.instructions = loaded.cash.instructions || '';
-        }
-      } catch(e) { console.error('Error loading pm state', e); }
-    }
-    
-    ['bank','mobile','cash','other'].forEach(m => {
-      const cb = document.getElementById(`pm-${m}`);
-      const details = document.getElementById(`pm-details-${m}`);
-      if (cb) cb.checked = pmState[m].enabled;
-      if (details) details.classList.toggle('show', pmState[m].enabled);
-      if (m === 'cash') {
-        const inst = document.getElementById('pm-cash-instructions');
-        if (inst) inst.value = pmState.cash.instructions;
-      } else {
-        renderAccounts(m);
-      }
-    });
+
 
   }
 
@@ -905,144 +804,35 @@
     handleLogoUpload(fakeEvent);
   });
 
-  /* ── Payment Methods Logic ── */
-  window.togglePaymentMethod = (method) => {
-    const check   = document.getElementById(`pm-${method}`);
-    const details = document.getElementById(`pm-details-${method}`);
-    pmState[method].enabled = check.checked;
-    if (details) details.classList.toggle('show', check.checked);
-    if (check.checked && method !== 'cash' && pmState[method].accounts.length === 0) {
-      addAccount(method);
+
+  /* ── Password Change Logic ── */
+  window.handleChangePassword = async () => {
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    if (!newPassword || newPassword.length < 8) {
+      showToast('Password must be at least 8 characters.', 'error');
+      return;
     }
-  };
-
-  window.addAccount = (method) => {
-    if (method === 'bank') {
-      pmState.bank.accounts.push({ bank: '', account: '', holder: '', branch: '' });
-    } else if (method === 'mobile') {
-      pmState.mobile.accounts.push({ provider: 'Airtel Money', number: '', holder: '' });
-    } else if (method === 'other') {
-      pmState.other.accounts.push({ method: '', details: '' });
+    if (newPassword !== confirmPassword) {
+      showToast('Passwords do not match.', 'error');
+      return;
     }
-    renderAccounts(method);
-  };
 
-  window.removeAccount = (method, idx) => {
-    pmState[method].accounts.splice(idx, 1);
-    renderAccounts(method);
-  };
-
-  function renderAccounts(method) {
-    const wrap = document.getElementById(`pm-${method}-accounts-wrap`);
-    if (!wrap) return;
-    wrap.innerHTML = '';
-
-    pmState[method].accounts.forEach((acct, idx) => {
-      const div = document.createElement('div');
-      div.className = 'pm-account-card';
-
-      if (method === 'bank') {
-        div.innerHTML = `
-          <div class="pm-account-card-header">
-            <span class="pm-account-label">Account ${idx + 1}</span>
-            <button type="button" class="pm-remove-btn" onclick="removeAccount('bank',${idx})" title="Remove">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Bank Name</label>
-              <input type="text" id="pm-bank-${idx}-bank" value="${acct.bank}" placeholder="e.g. National Bank of Malawi" oninput="syncAccount('bank',${idx},'bank',this.value)" />
-            </div>
-            <div class="form-group">
-              <label>Account Number</label>
-              <input type="text" id="pm-bank-${idx}-account" value="${acct.account}" placeholder="e.g. 1010142497" oninput="syncAccount('bank',${idx},'account',this.value)" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Account Holder Name</label>
-              <input type="text" id="pm-bank-${idx}-holder" value="${acct.holder}" placeholder="e.g. Blessings Chidazi" oninput="syncAccount('bank',${idx},'holder',this.value)" />
-            </div>
-            <div class="form-group">
-              <label>Branch (optional)</label>
-              <input type="text" id="pm-bank-${idx}-branch" value="${acct.branch}" placeholder="e.g. Zomba" oninput="syncAccount('bank',${idx},'branch',this.value)" />
-            </div>
-          </div>`;
-
-      } else if (method === 'mobile') {
-        div.innerHTML = `
-          <div class="pm-account-card-header">
-            <span class="pm-account-label">Provider ${idx + 1}</span>
-            <button type="button" class="pm-remove-btn" onclick="removeAccount('mobile',${idx})" title="Remove">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Provider</label>
-              <select id="pm-mobile-${idx}-provider" onchange="syncAccount('mobile',${idx},'provider',this.value)">
-                <option value="Airtel Money"${acct.provider==='Airtel Money'?' selected':''}>Airtel Money</option>
-                <option value="TNM Mpamba"${acct.provider==='TNM Mpamba'?' selected':''}>TNM Mpamba</option>
-                <option value="Other"${acct.provider==='Other'?' selected':''}>Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Mobile Number</label>
-              <input type="tel" id="pm-mobile-${idx}-number" value="${acct.number}" placeholder="e.g. +265 999 378 615" oninput="syncAccount('mobile',${idx},'number',this.value)" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Account Name / Business Name</label>
-            <input type="text" id="pm-mobile-${idx}-holder" value="${acct.holder}" placeholder="e.g. Blessings Chidazi" oninput="syncAccount('mobile',${idx},'holder',this.value)" />
-          </div>`;
-
-      } else if (method === 'other') {
-        div.innerHTML = `
-          <div class="pm-account-card-header">
-            <span class="pm-account-label">Method ${idx + 1}</span>
-            <button type="button" class="pm-remove-btn" onclick="removeAccount('other',${idx})" title="Remove">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Method Name</label>
-              <input type="text" id="pm-other-${idx}-method" value="${acct.method}" placeholder="e.g. PayPal, Cheque, Crypto" oninput="syncAccount('other',${idx},'method',this.value)" />
-            </div>
-            <div class="form-group">
-              <label>Details</label>
-              <input type="text" id="pm-other-${idx}-details" value="${acct.details}" placeholder="e.g. payments@company.com" oninput="syncAccount('other',${idx},'details',this.value)" />
-            </div>
-          </div>`;
-      }
-
-      wrap.appendChild(div);
-    });
-  }
-
-  window.syncAccount = (method, idx, field, value) => {
-    if (method && pmState[method] && pmState[method].accounts[idx]) {
-      pmState[method].accounts[idx][field] = value;
-    }
-  };
-
-  window.savePaymentMethods = async () => {
-    const cashEl = document.getElementById('pm-cash-instructions');
-    if (cashEl) pmState.cash.instructions = cashEl.value;
-    
-    ['bank','mobile','cash','other'].forEach(m => {
-      const cb = document.getElementById(`pm-${m}`);
-      if (cb) pmState[m].enabled = cb.checked;
-    });
+    const btn = document.getElementById('change-password-btn');
+    btn.disabled = true;
+    btn.innerHTML = 'Updating...';
 
     try {
-      await updateUserSettings({ payment_methods: pmState });
-      localStorage.setItem('invoiceflow_pm_state', JSON.stringify(pmState));
-      showSaveIndicator();
-      showToast('Payment methods saved successfully!', 'success');
+      await updatePassword(newPassword);
+      showToast('Password updated successfully!', 'success');
+      document.getElementById('new-password').value = '';
+      document.getElementById('confirm-password').value = '';
     } catch (err) {
-      showToast('Error saving: ' + err.message, 'error');
+      showToast('Failed to update password: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Update Password';
     }
   };
 

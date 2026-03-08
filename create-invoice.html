@@ -278,8 +278,8 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
               </div>
               <div>
-                <h3>Payment Methods &amp; Account Details</h3>
-                <p>Select methods and add one or more accounts — all will print on the invoice PDF in a horizontal layout</p>
+                <h3>Payment Methods</h3>
+                <p>Add payment options and details for this invoice.</p>
               </div>
             </div>
 
@@ -293,7 +293,6 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                   </span>
                   <span class="pm-toggle-label">Bank Transfer</span>
-                  <span class="pm-badge">Recommended</span>
                 </label>
                 <div class="payment-method-details" id="pm-details-bank">
                   <div id="pm-bank-accounts-wrap"></div>
@@ -334,7 +333,7 @@
                 <div class="payment-method-details" id="pm-details-cash">
                   <div class="form-group" style="margin:0;">
                     <label for="pm-cash-instructions">Cash Instructions (optional)</label>
-                    <input type="text" id="pm-cash-instructions" placeholder="e.g. Cash accepted at our office. Receipt will be issued." oninput="savePmState()" />
+                    <input type="text" id="pm-cash-instructions" placeholder="e.g. Cash accepted at our office. Receipt will be issued." oninput="syncCashInstructions()" />
                   </div>
                 </div>
               </div>
@@ -357,10 +356,6 @@
                 </div>
               </div>
 
-            </div>
-
-            <div style="margin-top:16px;padding:12px 16px;background:var(--accent-light);border:1px solid var(--border-accent);border-radius:var(--radius);font-size:0.8rem;color:var(--text-muted);">
-              <strong style="color:var(--accent);">&#128161; Tip:</strong> Add multiple accounts per method — all will appear side-by-side in columns on the PDF.
             </div>
           </div>
 
@@ -465,7 +460,6 @@
       } catch (e) { document.getElementById('invoice-number').value = 'INV-0001'; }
 
       addItem();
-      restorePaymentMethods();
     }
   })();
 
@@ -533,8 +527,6 @@
             renderAccounts(m);
           }
         });
-      } else {
-        restorePaymentMethods();
       }
     } catch (e) {
       hideLoadingOverlay();
@@ -785,14 +777,11 @@
     const details = document.getElementById(`pm-details-${method}`);
     pmState[method].enabled = check.checked;
     if (details) details.classList.toggle('show', check.checked);
-    // Add first account automatically when enabling
     if (check.checked && method !== 'cash' && pmState[method].accounts.length === 0) {
-      addAccount(method);
+      window.addAccount(method);
     }
-    savePmState();
   };
 
-  /* Add a new account row to a method */
   window.addAccount = (method) => {
     if (method === 'bank') {
       pmState.bank.accounts.push({ bank: '', account: '', holder: '', branch: '' });
@@ -802,17 +791,24 @@
       pmState.other.accounts.push({ method: '', details: '' });
     }
     renderAccounts(method);
-    savePmState();
   };
 
-  /* Remove one account row */
   window.removeAccount = (method, idx) => {
     pmState[method].accounts.splice(idx, 1);
     renderAccounts(method);
-    savePmState();
   };
 
-  /* Render account rows into the DOM for a given method */
+  window.syncAccount = (method, idx, field, value) => {
+    if (method && pmState[method] && pmState[method].accounts[idx]) {
+      pmState[method].accounts[idx][field] = value;
+    }
+  };
+
+  window.syncCashInstructions = () => {
+    const el = document.getElementById('pm-cash-instructions');
+    if (el) pmState.cash.instructions = el.value;
+  };
+
   function renderAccounts(method) {
     const wrap = document.getElementById(`pm-${method}-accounts-wrap`);
     if (!wrap) return;
@@ -902,62 +898,6 @@
     });
   }
 
-  /* Sync a single field change into state */
-  window.syncAccount = (method, idx, field, value) => {
-    if (pmState[method].accounts[idx]) {
-      pmState[method].accounts[idx][field] = value;
-      savePmState();
-    }
-  };
-
-  /* Save entire pmState to localStorage */
-  window.savePmState = function savePmState() {
-    // Update cash instructions from DOM
-    const cashEl = document.getElementById('pm-cash-instructions');
-    if (cashEl) pmState.cash.instructions = cashEl.value;
-    // Update enabled flags from checkboxes
-    ['bank','mobile','cash','other'].forEach(m => {
-      const cb = document.getElementById(`pm-${m}`);
-      if (cb) pmState[m].enabled = cb.checked;
-    });
-    localStorage.setItem('invoiceflow_pm_state', JSON.stringify(pmState));
-  };
-
-  /* Restore pmState from localStorage and re-render UI */
-  function restorePaymentMethods() {
-    const saved = localStorage.getItem('invoiceflow_pm_state');
-    if (saved) {
-      try {
-        const loaded = JSON.parse(saved);
-        // Merge carefully so new keys don't break old saves
-        ['bank','mobile','other'].forEach(m => {
-          if (loaded[m]) {
-            pmState[m].enabled  = !!loaded[m].enabled;
-            pmState[m].accounts = Array.isArray(loaded[m].accounts) ? loaded[m].accounts : [];
-          }
-        });
-        if (loaded.cash) {
-          pmState.cash.enabled      = !!loaded.cash.enabled;
-          pmState.cash.instructions = loaded.cash.instructions || '';
-        }
-      } catch(e) { /* ignore corrupt data */ }
-    }
-
-    // Apply to DOM
-    ['bank','mobile','cash','other'].forEach(method => {
-      const cb      = document.getElementById(`pm-${method}`);
-      const details = document.getElementById(`pm-details-${method}`);
-      if (!cb) return;
-      cb.checked = pmState[method].enabled;
-      if (details) details.classList.toggle('show', pmState[method].enabled);
-      if (method !== 'cash') renderAccounts(method);
-    });
-
-    // Restore cash instructions
-    const cashEl = document.getElementById('pm-cash-instructions');
-    if (cashEl) cashEl.value = pmState.cash.instructions;
-  }
-
   /* Collect methods for PDF generation */
   function collectPaymentMethods() {
     const methods = [];
@@ -968,9 +908,8 @@
     if (pmState.mobile.enabled && pmState.mobile.accounts.length > 0) {
       methods.push({ type: 'Mobile Money', accounts: [...pmState.mobile.accounts] });
     }
-    if (pmState.cash.enabled) {
-      const instr = document.getElementById('pm-cash-instructions')?.value.trim() || '';
-      methods.push({ type: 'Cash', accounts: [{ instructions: instr }] });
+    if (pmState.cash.enabled && pmState.cash.instructions) {
+      methods.push({ type: 'Cash', accounts: [{ instructions: pmState.cash.instructions }] });
     }
     if (pmState.other.enabled && pmState.other.accounts.length > 0) {
       // Build display name from first account's method field

@@ -27,11 +27,7 @@
 
     <!-- Auth Card -->
     <div class="auth-card">
-      <!-- Tabs -->
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
-        <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
-      </div>
+
 
       <!-- Alert area -->
       <div id="auth-alert" class="alert" style="display:none;"></div>
@@ -57,30 +53,7 @@
         </form>
       </div>
 
-      <!-- ── Sign Up Form ── -->
-      <div class="auth-form" id="form-signup">
-        <h2>Create your account</h2>
-        <p>Start managing invoices in minutes — free to use</p>
 
-        <form id="signup-form" onsubmit="handleSignup(event)">
-          <div class="form-group">
-            <label for="signup-email">Email Address</label>
-            <input type="email" id="signup-email" name="email" placeholder="you@example.com" required autocomplete="email" />
-          </div>
-          <div class="form-group">
-            <label for="signup-password">Password</label>
-            <input type="password" id="signup-password" name="password" placeholder="Min. 8 characters" minlength="8" required autocomplete="new-password" />
-          </div>
-          <div class="form-group">
-            <label for="signup-confirm">Confirm Password</label>
-            <input type="password" id="signup-confirm" name="confirm" placeholder="Repeat password" required autocomplete="new-password" />
-          </div>
-          <button type="submit" class="btn btn-primary btn-full btn-lg" id="signup-btn">
-            <span id="signup-btn-text">Create Account</span>
-            <span id="signup-spinner" class="spinner hidden"></span>
-          </button>
-        </form>
-      </div>
     </div>
 
     <p style="text-align:center; margin-top:20px; font-size:0.8rem; color:var(--text-dim);">
@@ -93,7 +66,7 @@
 
   <script type="module">
     import { supabaseClient } from './supabaseClient.js';
-    import { login, signUp } from './auth.js';
+    import { login } from './auth.js';
     import { showToast } from './utils.js';
 
     /* ── Redirect if already logged in ── */
@@ -102,14 +75,7 @@
       if (session) window.location.href = 'dashboard.html';
     })();
 
-    /* ── Tab Switch ── */
-    window.switchTab = (tab) => {
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-      document.getElementById(`tab-${tab}`).classList.add('active');
-      document.getElementById(`form-${tab}`).classList.add('active');
-      hideAlert();
-    };
+
 
     /* ── Show / Hide Alert ── */
     function showAlert(msg, type = 'error') {
@@ -128,7 +94,7 @@
       const text = document.getElementById(`${form}-btn-text`);
       const spin = document.getElementById(`${form}-spinner`);
       btn.disabled = loading;
-      text.textContent = loading ? 'Please wait…' : (form === 'login' ? 'Sign In' : 'Create Account');
+      text.textContent = loading ? 'Please wait…' : 'Sign In';
       spin.classList.toggle('hidden', !loading);
     }
 
@@ -149,34 +115,7 @@
       }
     };
 
-    /* ── Handle Signup ── */
-    window.handleSignup = async (e) => {
-      e.preventDefault();
-      hideAlert();
-      const email    = document.getElementById('signup-email').value.trim();
-      const password = document.getElementById('signup-password').value;
-      const confirm  = document.getElementById('signup-confirm').value;
 
-      if (password !== confirm) {
-        showAlert('Passwords do not match.');
-        return;
-      }
-      if (password.length < 8) {
-        showAlert('Password must be at least 8 characters.');
-        return;
-      }
-
-      setLoading('signup', true);
-      try {
-        await signUp(email, password);
-        showAlert('Account created! Check your email to confirm, then sign in.', 'success');
-        setTimeout(() => switchTab('login'), 2000);
-      } catch (err) {
-        showAlert(err.message || 'Sign up failed. Please try again.');
-      } finally {
-        setLoading('signup', false);
-      }
-    };
   </script>
 </body>
 </html>

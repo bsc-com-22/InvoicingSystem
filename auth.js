@@ -55,16 +55,18 @@ export async function getCurrentUser() {
     return user;
 }
 
-/* ─── Sign Up ────────────────────────────────────────────────────────────── */
-export async function signUp(email, password) {
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
-    if (error) throw error;
-    return data;
-}
+
 
 /* ─── Login ──────────────────────────────────────────────────────────────── */
 export async function login(email, password) {
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+}
+
+/* ─── Update Password ──────────────────────────────────────────────────────── */
+export async function updatePassword(newPassword) {
+    const { data, error } = await supabaseClient.auth.updateUser({ password: newPassword });
     if (error) throw error;
     return data;
 }
